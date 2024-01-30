@@ -47,7 +47,7 @@ namespace NanoPS
         private string testFunction()
         {
             //do nothing
-            return null;
+            return "hello";
         }
     }
 }
