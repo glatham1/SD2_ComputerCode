@@ -24,7 +24,7 @@ namespace NanoPS
 
         private void viewDataToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
+            //COding
         }
 
         private void groupBox1_Enter(object sender, EventArgs e)
