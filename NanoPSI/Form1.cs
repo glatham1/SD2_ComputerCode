@@ -36,5 +36,18 @@ namespace NanoPS
         {
 
         }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            label94.Text = "hello";
+            string str;
+            str = testFunction();
+        }
+        
+        private string testFunction()
+        {
+            //do nothing
+            return null;
+        }
     }
 }
