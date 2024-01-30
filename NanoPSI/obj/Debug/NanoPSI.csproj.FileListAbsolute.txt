@@ -1,0 +1,10 @@
+C:\Users\grays\source\repos\NanoPS\bin\Debug\NanoPS.exe.config
+C:\Users\grays\source\repos\NanoPS\bin\Debug\NanoPS.exe
+C:\Users\grays\source\repos\NanoPS\bin\Debug\NanoPS.pdb
+C:\Users\grays\source\repos\NanoPS\obj\Debug\NanoPSI.csproj.AssemblyReference.cache
+C:\Users\grays\source\repos\NanoPS\obj\Debug\NanoPS.Form1.resources
+C:\Users\grays\source\repos\NanoPS\obj\Debug\NanoPS.Properties.Resources.resources
+C:\Users\grays\source\repos\NanoPS\obj\Debug\NanoPSI.csproj.GenerateResource.cache
+C:\Users\grays\source\repos\NanoPS\obj\Debug\NanoPSI.csproj.CoreCompileInputs.cache
+C:\Users\grays\source\repos\NanoPS\obj\Debug\NanoPS.exe
+C:\Users\grays\source\repos\NanoPS\obj\Debug\NanoPS.pdb
