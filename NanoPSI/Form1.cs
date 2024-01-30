@@ -29,7 +29,7 @@ namespace NanoPS
 
         private void groupBox1_Enter(object sender, EventArgs e)
         {
-
+            //me and kurt are testing
         }
 
         private void label37_Click(object sender, EventArgs e)
