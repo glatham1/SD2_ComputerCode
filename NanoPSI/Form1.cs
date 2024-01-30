@@ -19,35 +19,31 @@ namespace NanoPS
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            //GitHub Test
+            
         }
 
         private void viewDataToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //COding
+            
         }
 
         private void groupBox1_Enter(object sender, EventArgs e)
         {
-            //me and kurt are testing
+            
         }
 
         private void label37_Click(object sender, EventArgs e)
         {
-            //this is my testsssss111
+            
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            label94.Text = "hello";
-            string str;
-            str = testFunction();
-        }
-        
-        private string testFunction()
-        {
-            //do nothing
-            return "hello";
+            //Needs to start timer
+
+            //Need to display start time
+
+            //Need to display end time
         }
     }
 }
