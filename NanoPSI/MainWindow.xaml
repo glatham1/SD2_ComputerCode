@@ -79,30 +79,34 @@
                 </StackPanel>
             </StackPanel>
 
-            <!-- Microcontroller Connection GroupBox -->
-            <GroupBox Header="Microcontroller Connection">
-                <StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <Label Content="Status:"/>
-                        <Label Content="Connected" Foreground="Green"/>
-                    </StackPanel>
-                    <Button Content="Troubleshoot" Margin="5" HorizontalAlignment="Center" />
-                </StackPanel>
-            </GroupBox>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
 
-            <!-- SQL Server Status GroupBox -->
-            <GroupBox Header="SQL Server Status">
-                <StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <Label Content="Status:"/>
-                        <Label Content="Connected" Foreground="Green"/>
-                        <!-- Update the Foreground color based on actual status -->
+                <!-- Microcontroller Connection GroupBox -->
+                <GroupBox Header="Microcontroller Connection">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Label Content="Status:"/>
+                            <Label Content="Connected" Foreground="Green"/>
+                        </StackPanel>
+                        <Button Content="Troubleshoot" Margin="5" HorizontalAlignment="Center" />
                     </StackPanel>
-                    <Button Content="Troubleshoot" Margin="5" HorizontalAlignment="Center" />
-                </StackPanel>
-            </GroupBox>
+                </GroupBox>
 
-            <!-- Threshold Control GroupBox -->
+                <!-- SQL Server Status GroupBox -->
+                <GroupBox Header="SQL Server Status">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Label Content="Status:"/>
+                            <Label Content="Connected" Foreground="Green"/>
+                            <!-- Update the Foreground color based on actual status -->
+                        </StackPanel>
+                        <Button Content="Troubleshoot" Margin="5" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </GroupBox>
+
+            </StackPanel>
+
+        <!-- Threshold Control GroupBox -->
             <GroupBox Header="Threshold Control">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal">
