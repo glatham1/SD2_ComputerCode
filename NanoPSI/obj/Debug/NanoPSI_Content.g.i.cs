@@ -8,6 +8,6 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("nanotech_nolockup_pms.jpg")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("nanopsi-logo.png")]
 
 

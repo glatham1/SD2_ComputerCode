@@ -67,7 +67,7 @@
 
             <!-- Logo and Sponsorship section -->
             <StackPanel HorizontalAlignment="Center" Margin="10">
-                <Image Height="100" />
+                <Image Source="/NanoPSI-Logo.png" Height="100" />
                 <!-- Adjust the path and Height accordingly -->
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5">
                     <TextBlock Text="sponsored by " 
@@ -75,7 +75,6 @@
                        FontWeight="Bold" 
                        FontSize="12" />
                     <Image Source="/Nanotech_NoLockup_PMS.jpg" Height="25" />
-                    <!-- Adjust the path and Height accordingly -->
                 </StackPanel>
             </StackPanel>
 

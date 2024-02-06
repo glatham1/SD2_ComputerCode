@@ -117,5 +117,8 @@
   <ItemGroup>
     <Resource Include="Nanotech_NoLockup_PMS.jpg" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="NanoPSI-Logo.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
