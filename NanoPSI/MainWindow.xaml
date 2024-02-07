@@ -158,9 +158,27 @@
                 </DataGrid>
             </GroupBox>
 
-            <GroupBox Header="Lighting Chart">
-                <lcu:LightningChart HorizontalAlignment="Center" Margin="0,0,0,0" Height="500" Width="900"/>
+            <GroupBox xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" Background="#202020">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal">
+                        <CheckBox Content="Show values next to cursor" IsChecked="True" Name="checkBoxShowValuesNextToCursor" Checked="checkBox1_CheckedChanged" Unchecked="checkBox1_CheckedChanged" Foreground="White"/>
+                        <Grid Width="8"/>
+                        <CheckBox Content="Snap to the nearest data point" IsChecked="True" Name="checkBoxSnapToNearestDataPoint" Checked="checkBoxSnapToNearestDataPoint_Checked" Unchecked="checkBoxSnapToNearestDataPoint_Unchecked" Foreground="White" />
+                        <Grid Width="8"/>
+                        <RadioButton Content="Accurate" Name="radioButtonAccurate" IsChecked="True" Foreground="White"/>
+                        <Grid Width="8"/>
+                        <RadioButton Content="Coarse (fast)" Name="radioButtonCoarse" Foreground="White"/>
+                    </StackPanel>
+                    <Grid Grid.Row="1" Name="gridChart">
+                        <lcu:LightningChart HorizontalAlignment="Center" Margin="0,0,0,0" Height="500" Width="900"/>
+                    </Grid>
+                </Grid>
             </GroupBox>
+
         </StackPanel>
 
         <!-- Right section with Chart Data View GroupBox -->
