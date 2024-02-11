@@ -359,5 +359,31 @@ namespace NanoPSI
                 _chart = null;
             }
         }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            //MCU Troubleshoot code
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            //SQL Server Link Troubleshoot code
+        }
+
+        private void Button_Click_2(object sender, RoutedEventArgs e)
+        {
+            //Start Timer
+            //Begin Test
+        }
+
+        private void Button_Click_3(object sender, RoutedEventArgs e)
+        {
+            //Save data button to save to server
+        }
+
+        private void Button_Click_4(object sender, RoutedEventArgs e)
+        {
+            //Find data button to pull from server
+        }
     }
 }

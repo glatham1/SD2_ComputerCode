@@ -67,7 +67,7 @@
 
             <!-- Logo and Sponsorship section -->
             <StackPanel HorizontalAlignment="Center" Margin="10">
-                <Image Source="/NanoPSI-Logo.png" Height="100" />
+                <Label Content="NanoPSI" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="60" FontFamily="Unispace" />
                 <!-- Adjust the path and Height accordingly -->
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5">
                     <TextBlock Text="sponsored by " 
@@ -87,7 +87,7 @@
                             <Label Content="Status:"/>
                             <Label Content="Connected" Foreground="Green"/>
                         </StackPanel>
-                        <Button Content="Troubleshoot" Margin="5" HorizontalAlignment="Center" />
+                        <Button Content="Troubleshoot" Margin="5" HorizontalAlignment="Center" Click="Button_Click" />
                     </StackPanel>
                 </GroupBox>
 
@@ -99,7 +99,7 @@
                             <Label Content="Connected" Foreground="Green"/>
                             <!-- Update the Foreground color based on actual status -->
                         </StackPanel>
-                        <Button Content="Troubleshoot" Margin="5" HorizontalAlignment="Center" />
+                        <Button Content="Troubleshoot" Margin="5" HorizontalAlignment="Center" Click="Button_Click_1" />
                     </StackPanel>
                 </GroupBox>
 
@@ -122,7 +122,7 @@
             <!-- Testing GroupBox -->
             <GroupBox Header="Testing">
                 <StackPanel>
-                    <Button Content="Start Pressure Test" />
+                    <Button Content="Start Pressure Test" Click="Button_Click_2" />
                     <StackPanel Orientation="Horizontal">
                         <Label Content="Start Time:" />
                         <Label x:Name="lblStartTime" Content="00:00" />
@@ -215,7 +215,7 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                         <!-- StackPanel for Save Data Button and its label -->
                         <StackPanel VerticalAlignment="Center" Margin="5" Width="200" Height="150">
-                            <Button Content="Save Data" Width="200" HorizontalAlignment="Center" />
+                            <Button Content="Save Data" Width="200" HorizontalAlignment="Center" Click="Button_Click_3" />
                             <Label HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                                 <TextBlock Text="Saves the current graph's data and visuals." TextWrapping="Wrap" TextAlignment="Center"/>
                             </Label>
@@ -223,7 +223,7 @@
 
                         <!-- StackPanel for Find Data Button and its label -->
                         <StackPanel VerticalAlignment="Center" Margin="5" Width="200" Height="150">
-                            <Button Content="Find Data" Width="200" HorizontalAlignment="Center" />
+                            <Button Content="Find Data" Width="200" HorizontalAlignment="Center" Click="Button_Click_4" />
                             <Label HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                                 <TextBlock Text="Upload file to view on the graph. (Note: Will get rid of current chart data, make sure to save before uploading new data.)" TextWrapping="Wrap" TextAlignment="Center"/>
                             </Label>
