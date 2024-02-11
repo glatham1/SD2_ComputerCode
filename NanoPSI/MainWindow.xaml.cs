@@ -17,6 +17,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace NanoPSI
 {
@@ -26,17 +27,35 @@ namespace NanoPSI
     public partial class MainWindow : Window
     {
         private LightningChart _chart = null;
+        private DispatcherTimer timer;
+        private DateTime startTime;
 
         public MainWindow()
         {
             // Set Deployment Key for LightningChart components
             string deploymentKey = "lgCAAE3C1L0Ig9kBJABVcGRhdGVhYmxlVGlsbD0yMDI1LTA1LTEyI1JldmlzaW9uPTACgD9VCrEQWTcyiWKli80/h/yvJ3PUo9Iacz9kMGmQRMVUlMQFidiOQwCSaOXmsMNu7XFpqENfqtDrAAoepDhhY1eAnA1aWsJYAdPY01icT/20IDzzsnhuXuyWwRO9w4lCbieMD4do7M6U1Wdj0+xAPRuZGrSY3kaJYnp84YvfZ1wPrvvhXbt/EQPkcKstrpo7kjxhEjSEL3p+rIQfz1zde1WFLR0VmMbTZe4M3c7Z5qS9aPQtPT3GDNeQFgtEBdUhFNjh1xVJguD6y8rjVmqyzkelfnNyj/6zMh/C5rZSaBWpmmSNIgD+nJ3CRyA3DoYXDVTlxmbLP16UV0YvttIC/5SJD15lQkPbd+B/KJYc8Ost0wBYmHGR9/lveXThh/NWz8amQyE3It/nn2S7bvWmJoGOtsbqRCsyeGbZBxW2EnNQnlruvy0tlzQ8FvaMlXCeB4LYQntdi12EKGh8QYIxuEdu5BBquigN3fChsf+r+qjE9+hIXXMIgi5YfhTJU9meik8=";
-
-            // Setting Deployment Key for non-bindable chart
             Arction.Wpf.Charting.LightningChart.SetDeploymentKey(deploymentKey);
 
             InitializeComponent();
             CreateChart();
+            InitializeTimer();
+        }
+
+        private void InitializeTimer()
+        {
+            // Create a new timer
+            timer = new DispatcherTimer();
+            // Set the interval to 1 second
+            timer.Interval = TimeSpan.FromSeconds(1);
+            // Assign the event that's called each tick
+            timer.Tick += Timer_Tick;
+        }
+
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            var now = DateTime.Now;
+            var elapsed = now - startTime;
+            lblElapsedTime.Content = $"{elapsed.Hours:00}:{elapsed.Minutes:00}:{elapsed.Seconds:00}";
         }
 
         private void CreateChart()
@@ -372,7 +391,11 @@ namespace NanoPSI
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
-            //Start Timer
+            // Start Timer
+            startTime = DateTime.Now;
+            lblStartTime.Content = startTime.ToLongTimeString();
+            timer.Start();
+
             //Begin Test
         }
 
@@ -384,6 +407,17 @@ namespace NanoPSI
         private void Button_Click_4(object sender, RoutedEventArgs e)
         {
             //Find data button to pull from server
+        }
+
+        private void Button_Click_StopTest(object sender, RoutedEventArgs e)
+        {
+            // Stop Test
+            timer.Stop();
+            var endTime = DateTime.Now;
+            lblEndTime.Content = endTime.ToLongTimeString();
+
+            var elapsed = endTime - startTime;
+            lblElapsedTime.Content = $"{elapsed.Hours:00}:{elapsed.Minutes:00}:{elapsed.Seconds:00}";
         }
     }
 }

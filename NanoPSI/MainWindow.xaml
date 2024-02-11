@@ -107,7 +107,7 @@
 
         <!-- Threshold Control GroupBox -->
             <GroupBox Header="Threshold Control">
-                <StackPanel>
+                <StackPanel HorizontalAlignment="Center">
                     <StackPanel Orientation="Horizontal">
                         <Label Content="Min Threshold:" Width="100" VerticalAlignment="Center" />
                         <TextBox Width="100" />
@@ -120,14 +120,21 @@
             </GroupBox>
 
             <!-- Testing GroupBox -->
-            <GroupBox Header="Testing">
-                <StackPanel>
-                    <Button Content="Start Pressure Test" Click="Button_Click_2" />
+            <GroupBox Header="Testing Control">
+                <StackPanel HorizontalAlignment="Center">
                     <StackPanel Orientation="Horizontal">
+                        <Button Content="Start Pressure Test" Click="Button_Click_2" Height="45" />
+                        <Button Content="Stop Pressure Test" Click="Button_Click_StopTest" Margin="5,0,0,0" Height="45" />
+                    </StackPanel>
+                    <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
                         <Label Content="Start Time:" />
                         <Label x:Name="lblStartTime" Content="00:00" />
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                        <Label Content="Elapsed Time:" />
+                        <Label x:Name="lblElapsedTime" Content="00:00" />
+                    </StackPanel>
+                    <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
                         <Label Content="End Time:" />
                         <Label x:Name="lblEndTime" Content="00:00" />
                     </StackPanel>
