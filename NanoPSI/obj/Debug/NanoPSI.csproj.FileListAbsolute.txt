@@ -34,3 +34,9 @@ C:\Users\grays\Source\Repos\SD2_ComputerCode\NanoPSI\obj\Debug\NanoPSI.csproj.Co
 C:\Users\grays\Source\Repos\SD2_ComputerCode\NanoPSI\obj\Debug\NanoPSI.csproj.CopyComplete
 C:\Users\grays\Source\Repos\SD2_ComputerCode\NanoPSI\obj\Debug\NanoPSI.exe
 C:\Users\grays\Source\Repos\SD2_ComputerCode\NanoPSI\obj\Debug\NanoPSI.pdb
+C:\Users\grays\source\repos\SD2_ComputerCode\NanoPSI\bin\Debug\Arction.DirectX.dll
+C:\Users\grays\source\repos\SD2_ComputerCode\NanoPSI\bin\Debug\Arction.Licensing.dll
+C:\Users\grays\source\repos\SD2_ComputerCode\NanoPSI\bin\Debug\Arction.RenderingDefinitions.dll
+C:\Users\grays\source\repos\SD2_ComputerCode\NanoPSI\bin\Debug\Arction.RenderingEngine.dll
+C:\Users\grays\source\repos\SD2_ComputerCode\NanoPSI\bin\Debug\Arction.RenderingEngine11.dll
+C:\Users\grays\source\repos\SD2_ComputerCode\NanoPSI\bin\Debug\Arction.RenderingEngine9.dll
