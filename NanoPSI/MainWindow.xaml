@@ -83,9 +83,10 @@
                 <!-- Microcontroller Connection GroupBox -->
                 <GroupBox Header="Microcontroller Connection">
                     <StackPanel>
+                        <ComboBox x:Name="mcuConnect" Width="200" Height="30" Margin="10" SelectionChanged="mcuConnect_SelectionChanged"/>
                         <StackPanel Orientation="Horizontal">
                             <Label Content="Status:"/>
-                            <Label Content="Connected" Foreground="Green"/>
+                            <Label Name="mcuStatus" Content="Connected" Foreground="Green"/>
                         </StackPanel>
                         <Button Content="Troubleshoot" Margin="5" HorizontalAlignment="Center" Click="Button_Click" />
                     </StackPanel>

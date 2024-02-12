@@ -40,3 +40,5 @@ C:\Users\grays\source\repos\SD2_ComputerCode\NanoPSI\bin\Debug\Arction.Rendering
 C:\Users\grays\source\repos\SD2_ComputerCode\NanoPSI\bin\Debug\Arction.RenderingEngine.dll
 C:\Users\grays\source\repos\SD2_ComputerCode\NanoPSI\bin\Debug\Arction.RenderingEngine11.dll
 C:\Users\grays\source\repos\SD2_ComputerCode\NanoPSI\bin\Debug\Arction.RenderingEngine9.dll
+C:\Users\grays\source\repos\SD2_ComputerCode\NanoPSI\bin\Debug\InTheHand.Net.Personal.dll
+C:\Users\grays\source\repos\SD2_ComputerCode\NanoPSI\bin\Debug\InTheHand.Net.Personal.xml

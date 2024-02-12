@@ -3,15 +3,21 @@ using Arction.Wpf.Charting.Annotations;
 using Arction.Wpf.Charting.Axes;
 using Arction.Wpf.Charting.SeriesXY;
 using Arction.Wpf.Charting.Views.ViewXY;
+using InTheHand.Net.Bluetooth;
+using InTheHand.Net.Bluetooth.Factory;
+using InTheHand.Net.Sockets;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -29,6 +35,7 @@ namespace NanoPSI
         private LightningChart _chart = null;
         private DispatcherTimer timer;
         private DateTime startTime;
+        BluetoothClient client = new BluetoothClient();
 
         public MainWindow()
         {
@@ -39,6 +46,67 @@ namespace NanoPSI
             InitializeComponent();
             CreateChart();
             InitializeTimer();
+            DiscoverDevices();
+        }
+
+        private void DiscoverDevices()
+        {
+            try
+            {
+                BluetoothDeviceInfo[] devices = client.DiscoverDevicesInRange();
+                mcuConnect.Items.Clear(); // Clear existing items
+                foreach (BluetoothDeviceInfo device in devices)
+                {
+                    mcuConnect.Items.Add(device.DeviceName);
+                    mcuConnect.DisplayMemberPath = "DeviceName";
+                    mcuConnect.SelectedValuePath = "DeviceAddress";
+                    mcuConnect.Items.Add(device);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error discovering devices: {ex.Message}");
+            }
+        }
+
+        private void mcuConnect_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (mcuConnect.SelectedItem is BluetoothDeviceInfo selectedDevice)
+            {
+                ConnectToDevice(selectedDevice);
+            }
+        }
+
+        private void ConnectToDevice(BluetoothDeviceInfo device)
+        {
+            try
+            {
+                client.BeginConnect(device.DeviceAddress, BluetoothService.SerialPort, new AsyncCallback(ConnectCallback), device);
+                mcuStatus.Content = "Connected";
+                mcuStatus.Foreground = new SolidColorBrush(Colors.Green);
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error connecting to device: {ex.Message}");
+                mcuStatus.Content = "Connected";
+                mcuStatus.Foreground = new SolidColorBrush(Colors.Red);
+            }
+        }
+
+        private void ConnectCallback(IAsyncResult result)
+        {
+            try
+            {
+                client.EndConnect(result);
+                
+
+                // After successful connection, you can start reading/writing data
+                // Implement your data read/write logic here
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error in connection callback: {ex.Message}");
+            }
         }
 
         private void InitializeTimer()
@@ -367,6 +435,7 @@ namespace NanoPSI
                 _chart.ViewXY.LineSeriesCursors[0].SnapToPoints = false;
             }
         }
+        
         public void Dispose()
         {
             // Don't forget to clear chart grid child list.
