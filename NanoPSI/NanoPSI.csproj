@@ -111,7 +111,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <Resource Include="NanoPSI Logo.webp" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -122,19 +121,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="connection_icon-icons.com_71227.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="5473691.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Nanotech Logo.jpg" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Nanotech_NoLockup_PMS.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="NanoPSI-Logo.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
