@@ -49,6 +49,7 @@ namespace NanoPSI
             DiscoverDevices();
         }
 
+        /**************** Bluetooth Connection Functions *******************************************/
         private void DiscoverDevices()
         {
             try
@@ -109,6 +110,8 @@ namespace NanoPSI
             }
         }
 
+        /***************** Timer Functions *********************************************************/
+
         private void InitializeTimer()
         {
             // Create a new timer
@@ -126,6 +129,7 @@ namespace NanoPSI
             lblElapsedTime.Content = $"{elapsed.Hours:00}:{elapsed.Minutes:00}:{elapsed.Seconds:00}";
         }
 
+        /***************** Lightning Charts Functions **********************************************/
         private void CreateChart()
         {
             // Create a new chart.
@@ -447,6 +451,8 @@ namespace NanoPSI
                 _chart = null;
             }
         }
+
+        /***************** Frontend Control Functions *********************************************/
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
