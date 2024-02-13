@@ -82,11 +82,13 @@
 
                 <!-- Microcontroller Connection GroupBox -->
                 <GroupBox Header="Microcontroller Connection">
-                    <StackPanel>
-                        <ComboBox x:Name="mcuConnect" Width="200" Height="30" Margin="10" SelectionChanged="mcuConnect_SelectionChanged"/>
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <ComboBox x:Name="mcuConnect" Width="200" Height="30" Margin="10" SelectionChanged="mcuConnect_SelectionChanged">
+                            <ComboBoxItem Content="Select Bluetooth Device" IsSelected="True" />
+                        </ComboBox>
                         <StackPanel Orientation="Horizontal">
                             <Label Content="Status:"/>
-                            <Label Name="mcuStatus" Content="Connected" Foreground="Green"/>
+                            <Label Name="mcuStatus" Content="Not Connected" Foreground="Red"/>
                         </StackPanel>
                         <Button Content="Troubleshoot" Margin="5" HorizontalAlignment="Center" Click="Button_Click" />
                     </StackPanel>
@@ -94,10 +96,10 @@
 
                 <!-- SQL Server Status GroupBox -->
                 <GroupBox Header="SQL Server Status">
-                    <StackPanel>
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                         <StackPanel Orientation="Horizontal">
                             <Label Content="Status:"/>
-                            <Label Content="Connected" Foreground="Green"/>
+                            <Label Content="Not Connected" Foreground="Red"/>
                             <!-- Update the Foreground color based on actual status -->
                         </StackPanel>
                         <Button Content="Troubleshoot" Margin="5" HorizontalAlignment="Center" Click="Button_Click_1" />
@@ -124,8 +126,8 @@
             <GroupBox Header="Testing Control">
                 <StackPanel HorizontalAlignment="Center">
                     <StackPanel Orientation="Horizontal">
-                        <Button Content="Start Pressure Test" Click="Button_Click_2" Height="45" />
-                        <Button Content="Stop Pressure Test" Click="Button_Click_StopTest" Margin="5,0,0,0" Height="45" />
+                        <Button Name="startButton" Content="Start Pressure Test" Click="Button_Click_2" Height="45" />
+                        <Button Name="stopButton" Content="Stop Pressure Test" Click="Button_Click_StopTest" Margin="5,0,0,0" Height="45" IsEnabled="False" />
                     </StackPanel>
                     <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
                         <Label Content="Start Time:" />

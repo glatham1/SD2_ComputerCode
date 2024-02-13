@@ -36,6 +36,7 @@ namespace NanoPSI
         private DispatcherTimer timer;
         private DateTime startTime;
         BluetoothClient client = new BluetoothClient();
+        private Random random = new Random(); // TEMP FOR TESTING
 
         public MainWindow()
         {
@@ -49,7 +50,10 @@ namespace NanoPSI
             DiscoverDevices();
         }
 
-        /**************** Bluetooth Connection Functions *******************************************/
+        /**************** SQL Connection Functions ************************************************/
+
+
+        /**************** Bluetooth Connection Functions ******************************************/
         private void DiscoverDevices()
         {
             try
@@ -89,7 +93,7 @@ namespace NanoPSI
             catch (Exception ex)
             {
                 System.Windows.MessageBox.Show($"Error connecting to device: {ex.Message}");
-                mcuStatus.Content = "Connected";
+                mcuStatus.Content = "Not Connected";
                 mcuStatus.Foreground = new SolidColorBrush(Colors.Red);
             }
         }
@@ -109,6 +113,71 @@ namespace NanoPSI
                 System.Windows.MessageBox.Show($"Error in connection callback: {ex.Message}");
             }
         }
+        /*
+        private string ReadMCU()
+        {
+            try
+            {
+                if (client.Connected)
+                {
+                    NetworkStream stream = client.GetStream();
+                    if (stream.CanRead)
+                    {
+                        byte[] buffer = new byte[1024];
+                        int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                        return Encoding.ASCII.GetString(buffer, 0, bytesRead);
+                    }
+                    else
+                    {
+                        return "Cannot read from device";
+                    }
+                }
+                else
+                {
+                    return "Not connected to device";
+                }
+            }
+            catch (Exception ex)
+            {
+                return $"Error reading from device: {ex.Message}";
+            }
+        }
+
+        private void WriteToMCU(string data)
+        {
+            try
+            {
+                if (client.Connected)
+                {
+                    NetworkStream stream = client.GetStream();
+                    if (stream.CanWrite)
+                    {
+                        byte[] buffer = Encoding.ASCII.GetBytes(data);
+                        stream.Write(buffer, 0, buffer.Length);
+                    }
+                    else
+                    {
+                        System.Windows.MessageBox.Show("Cannot write to device");
+                    }
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show("Not connected to device");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error writing to device: {ex.Message}");
+            }
+        }
+        */
+
+        private double ReadMCU()
+        {
+            // TODO: Need to read ASCII values from microcontroller here and return them as a double
+            
+            return random.NextDouble() * 100;
+        }
 
         /***************** Timer Functions *********************************************************/
 
@@ -117,7 +186,7 @@ namespace NanoPSI
             // Create a new timer
             timer = new DispatcherTimer();
             // Set the interval to 1 second
-            timer.Interval = TimeSpan.FromSeconds(1);
+            timer.Interval = TimeSpan.FromSeconds(0.25);
             // Assign the event that's called each tick
             timer.Tick += Timer_Tick;
         }
@@ -127,6 +196,9 @@ namespace NanoPSI
             var now = DateTime.Now;
             var elapsed = now - startTime;
             lblElapsedTime.Content = $"{elapsed.Hours:00}:{elapsed.Minutes:00}:{elapsed.Seconds:00}";
+
+            // Update the chart with new data
+            UpdateChartData(elapsed.TotalSeconds, ReadMCU());
         }
 
         /***************** Lightning Charts Functions **********************************************/
@@ -142,51 +214,59 @@ namespace NanoPSI
             _chart.BeginUpdate();
 
             //Y-axis are stacked and has common x-axis drawn
-            _chart.ViewXY.AxisLayout.YAxesLayout = YAxesLayout.Stacked;
+            _chart.ViewXY.AxisLayout.YAxesLayout = YAxesLayout.Layered;
 
-            _chart.ViewXY.YAxes.Clear(); // Remove existing y-axes.
+            // Clear existing Y-axes and create a single Y-axis with the title "psi"
+            _chart.ViewXY.YAxes.Clear();
+            var yAxis = new AxisY(_chart.ViewXY);
+            yAxis.Title.Text = "Pressure (psi)";
+            _chart.ViewXY.YAxes.Add(yAxis);
 
             //Chart background properties
             _chart.ViewXY.GraphBackground.GradientFill = GradientFill.Radial;
 
             //Don't show legend box
-            _chart.ViewXY.LegendBoxes[0].Visible = false;
+            // Enable and configure the legend box
+            _chart.ViewXY.LegendBoxes[0].Visible = true;
+            _chart.ViewXY.LegendBoxes[0].Layout = LegendBoxLayout.VerticalColumnSpan;
+            _chart.ViewXY.LegendBoxes[0].Position = LegendBoxPositionXY.TopRight;
+            _chart.ViewXY.LegendBoxes[0].Offset.SetValues(0, 0);
+            _chart.ViewXY.LegendBoxes[0].SeriesTitleFont = new WpfFont("Segoe UI", 12, false, false);
 
             //Chart title text
             _chart.Title.Text = "Pocket Pressures";
 
             //X-axis title
-            _chart.ViewXY.XAxes[0].Title.Text = "Time";
-            _chart.ViewXY.XAxes[0].ScrollMode = XAxisScrollMode.None;
+            _chart.ViewXY.XAxes.Clear();
+            var xAxis = new AxisX(_chart.ViewXY);
+            xAxis.Title.Text = "Time (s)";
+            xAxis.ValueType = AxisValueType.Number;
+            xAxis.ScrollMode = XAxisScrollMode.Scrolling;
+            _chart.ViewXY.XAxes.Add(xAxis);
 
+            // Create and add a PointLineSeries to the chart
+            var series = new PointLineSeries(_chart.ViewXY, xAxis, yAxis);
+            series.Title.Text = "Pressure Data";
+            _chart.ViewXY.PointLineSeries.Add(series); // Will need to add more PointLineSeries per transducer
+            System.Windows.Media.Color color = Colors.Black;
+
+            /*
             int seriesCount = 15;
             int pointsCount = 500;
 
             Random rand = new Random();
             const double dXStep = 0.1;
             System.Windows.Media.Color color = Colors.Black;
-
+            
             //Create series
             for (int seriesIndex = 0; seriesIndex < seriesCount; seriesIndex++)
             {
-                //Create new Y axis for each series 
-                AxisY axisY = new AxisY(_chart.ViewXY);
-                axisY.Units.Text = "psi";
-                axisY.Title.Text = "Transducer " + (seriesIndex + 1).ToString();
-                axisY.Title.Angle = 0;
-                axisY.Title.Font = new WpfFont("Segoe UI", 13, false, false);
-                axisY.Title.Color = Colors.White;
-                axisY.AutoFormatLabels = false;
-                axisY.AutoDivSeparationPercent = 5;
-                axisY.LabelsNumberFormat = "0";
-
-                _chart.ViewXY.YAxes.Add(axisY);
-
-                //Create a point-line series
-                PointLineSeries pointLineSeries = new PointLineSeries(_chart.ViewXY, _chart.ViewXY.XAxes[0], axisY);
+                // Create a point-line series
+                PointLineSeries pointLineSeries = new PointLineSeries(_chart.ViewXY, _chart.ViewXY.XAxes[0], yAxis);
                 pointLineSeries.LineStyle.Color = DefaultColors.SeriesForBlackBackgroundWpf[seriesIndex];
+                pointLineSeries.Title.Text = "Transducer " + (seriesIndex + 1);
 
-                //Set some data into series 
+                // Set some data into the series
                 SeriesPoint[] points = new SeriesPoint[pointsCount];
                 double x = 0;
                 for (int pointIndex = 0; pointIndex < pointsCount; pointIndex++)
@@ -195,24 +275,11 @@ namespace NanoPSI
                     points[pointIndex].Y = 300.0 + 800.0 * (0.2 * (rand.NextDouble() - 0.5) + 0.2 * Math.Sin(x * (seriesIndex + 1)));
                     x += dXStep;
                 }
-
-                //Assign the points array to series
                 pointLineSeries.Points = points;
 
-                color = pointLineSeries.LineStyle.Color;
-
-                //Set title style, for "right-edge" cursor values mode 
-                pointLineSeries.Title.HorizontalAlign = AlignmentHorizontal.Right;
-                pointLineSeries.Title.Fill.Style = RectFillStyle.ColorOnly;
-                pointLineSeries.Title.Fill.Color = ChartTools.CalcGradient(System.Windows.Media.Color.FromArgb(200, 255, 255, 255), System.Windows.Media.Color.FromArgb(200, color.R, color.G, color.B), 50);
-                pointLineSeries.Title.Fill.GradientColor = ChartTools.CalcGradient(System.Windows.Media.Color.FromArgb(200, 0, 0, 0), System.Windows.Media.Color.FromArgb(200, color.R, color.G, color.B), 50);
-                pointLineSeries.Title.Color = Colors.White;
-
-                //Add point-line series to PointLineSeries list
+                // Add the series to the chart
                 _chart.ViewXY.PointLineSeries.Add(pointLineSeries);
-            }
-
-
+            }*/
 
             //Add an annotation to show the cursor values
             AnnotationXY cursorValueDisplay = new AnnotationXY(_chart.ViewXY, _chart.ViewXY.XAxes[0], _chart.ViewXY.YAxes[0])
@@ -253,6 +320,23 @@ namespace NanoPSI
             _chart.SizeChanged += new SizeChangedEventHandler(_chart_SizeChanged);
             gridChart.Children.Add(_chart);
 
+        }
+
+        private void UpdateChartData(double time, double pressure)
+        {
+            // TODO: Adjust to update all 15 point line series with time and pressure
+            
+            _chart.BeginUpdate();
+
+            var series = _chart.ViewXY.PointLineSeries[0];
+            var points = series.Points.ToList(); // Convert the array to a list
+            points.Add(new SeriesPoint(time, pressure)); // Add the new point
+            series.Points = points.ToArray(); // Convert the list back to an array
+
+            // Adjust X-axis to show the latest data
+            _chart.ViewXY.XAxes[0].SetRange(0, time);
+
+            _chart.EndUpdate();
         }
 
         private void cursor_PositionChanged(object sender, PositionChangedEventArgs e)
@@ -456,12 +540,12 @@ namespace NanoPSI
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            //MCU Troubleshoot code
+            //TODO: Code troubleshoot button for MCU connection
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            //SQL Server Link Troubleshoot code
+            //TODO: Code troubleshoot button for SQL connection
         }
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
@@ -471,17 +555,22 @@ namespace NanoPSI
             lblStartTime.Content = startTime.ToLongTimeString();
             timer.Start();
 
+            //Disable and Enable Buttons
+            startButton.IsEnabled = false;
+            stopButton.IsEnabled = true;
+
             //Begin Test
+            // TODO: Add functionality to Real Time Pressure Data table
         }
 
         private void Button_Click_3(object sender, RoutedEventArgs e)
         {
-            //Save data button to save to server
+            // TODO: Save data button to save to server
         }
 
         private void Button_Click_4(object sender, RoutedEventArgs e)
         {
-            //Find data button to pull from server
+            // TODO: Find data button to pull from server
         }
 
         private void Button_Click_StopTest(object sender, RoutedEventArgs e)
@@ -490,6 +579,10 @@ namespace NanoPSI
             timer.Stop();
             var endTime = DateTime.Now;
             lblEndTime.Content = endTime.ToLongTimeString();
+
+            //Disable and Enable Buttons
+            startButton.IsEnabled = true;
+            stopButton.IsEnabled = false;
 
             var elapsed = endTime - startTime;
             lblElapsedTime.Content = $"{elapsed.Hours:00}:{elapsed.Minutes:00}:{elapsed.Seconds:00}";
