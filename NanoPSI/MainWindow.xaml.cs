@@ -52,8 +52,12 @@ namespace NanoPSI
 
         /**************** SQL Connection Functions ************************************************/
 
+        /*
+         *  1:3.4,2:2.5,3:-1
+        */
 
         /**************** Bluetooth Connection Functions ******************************************/
+        
         private void DiscoverDevices()
         {
             try
@@ -62,7 +66,7 @@ namespace NanoPSI
                 mcuConnect.Items.Clear(); // Clear existing items
                 foreach (BluetoothDeviceInfo device in devices)
                 {
-                    mcuConnect.Items.Add(device.DeviceName);
+                    //mcuConnect.Items.Add(device.DeviceName);
                     mcuConnect.DisplayMemberPath = "DeviceName";
                     mcuConnect.SelectedValuePath = "DeviceAddress";
                     mcuConnect.Items.Add(device);
