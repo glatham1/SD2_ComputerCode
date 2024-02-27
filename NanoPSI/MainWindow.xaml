@@ -113,11 +113,11 @@
                 <StackPanel HorizontalAlignment="Center">
                     <StackPanel Orientation="Horizontal">
                         <Label Content="Min Threshold:" Width="100" VerticalAlignment="Center" />
-                        <TextBox Width="100" />
+                        <TextBox Name="minThresh" TextChanged="MinThresh_TextChanged" Width="100"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
                         <Label Content="Max Threshold:" Width="100" VerticalAlignment="Center" />
-                        <TextBox Width="100" />
+                        <TextBox Name="maxThresh" TextChanged="MaxThresh_TextChanged" Width="100"/>
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
@@ -127,6 +127,7 @@
                 <StackPanel HorizontalAlignment="Center">
                     <StackPanel Orientation="Horizontal">
                         <Button Name="startButton" Content="Start Pressure Test" Click="Button_Click_2" Height="45" />
+                        <Button Name="pauseButton" Content="Pause" Click="Button_Click_PauseTest" Margin="5,0,0,0" Height="45" IsEnabled="False" />
                         <Button Name="stopButton" Content="Stop Pressure Test" Click="Button_Click_StopTest" Margin="5,0,0,0" Height="45" IsEnabled="False" />
                     </StackPanel>
                     <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
@@ -148,24 +149,28 @@
         <!-- Middle section with Real Time Pressure Data GroupBox and LightningChart -->
         <StackPanel Grid.Column="1">
             <GroupBox Header="Real Time Pressure Data">
-                <DataGrid AutoGenerateColumns="False" IsReadOnly="True" Height="400" Width="900">
+                <DataGrid AutoGenerateColumns="False" Name="dataGrid" IsReadOnly="True" Height="400" Width="900">
                     <DataGrid.Columns>
                         <!-- Transducer Active Checkbox Column -->
-                        <DataGridCheckBoxColumn Header="Transducer Active" Binding="{Binding IsActive}" Width="150"/>
+                        <DataGridCheckBoxColumn Header="Transducer Active" Binding="{Binding IsActive}" Width="Auto"/>
 
                         <!-- Transducer # Column -->
-                        <DataGridTextColumn Header="Transducer #" Binding="{Binding TransducerNumber}" Width="250"/>
+                        <DataGridTextColumn Header="Transducer #" Binding="{Binding TransducerName}" Width="Auto"/>
 
                         <!-- Pressure (PSI) Column -->
-                        <DataGridTextColumn Header="Pressure (PSI)" Binding="{Binding PressurePSI}" Width="175"/>
+                        <DataGridTextColumn Header="Pressure (PSI)" Binding="{Binding LastPressureValue}" Width="Auto"/>
+
+                        <!-- Time (s) Column -->
+                        <DataGridTextColumn Header="Time (s)" Binding="{Binding LastTimeValue}" Width="Auto"/>
 
                         <!-- Connection Status Column -->
-                        <DataGridTextColumn Header="Connection Status" Binding="{Binding ConnectionStatus}" Width="175"/>
+                        <DataGridTextColumn Header="Connection Status" Binding="{Binding ConnectionStatus}" Width="Auto"/>
 
                         <!-- Offset Column -->
-                        <DataGridTextColumn Header="Offset" Binding="{Binding Offset}" Width="150"/>
+                        <DataGridTextColumn Header="Offset" Binding="{Binding Offset}" Width="Auto"/>
                     </DataGrid.Columns>
                 </DataGrid>
+
             </GroupBox>
 
             <GroupBox xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" Background="#202020">
@@ -183,12 +188,9 @@
                         <Grid Width="8"/>
                         <RadioButton Content="Coarse (fast)" Name="radioButtonCoarse" Foreground="White"/>
                     </StackPanel>
-                    <Grid Grid.Row="1" Name="gridChart">
-                        <lcu:LightningChart HorizontalAlignment="Center" Margin="0,0,0,0" Height="500" Width="900"/>
-                    </Grid>
+                    <Grid Grid.Row="1" Name="gridChart" Height="500"/>
                 </Grid>
             </GroupBox>
-
         </StackPanel>
 
         <!-- Right section with Chart Data View GroupBox -->
