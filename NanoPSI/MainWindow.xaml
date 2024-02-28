@@ -99,7 +99,7 @@
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                         <StackPanel Orientation="Horizontal">
                             <Label Content="Status:"/>
-                            <Label Content="Not Connected" Foreground="Red"/>
+                            <Label Content="Not Connected" Foreground="Red" Name="sqlConnLabel"/>
                             <!-- Update the Foreground color based on actual status -->
                         </StackPanel>
                         <Button Content="Troubleshoot" Margin="5" HorizontalAlignment="Center" Click="Button_Click_1" />

@@ -33,6 +33,7 @@ namespace NanoPSI
         private int minThreshold = 0;
         private int maxThreshold = 400;
         private ObservableCollection<TransducerData> transducerDataCollection = new ObservableCollection<TransducerData>();
+        private const string connStr = "server=127.0.0.1;port=3306;database=sys;user=root;password=NinerGraduate-2024;";
 
         public class TransducerData
         {
@@ -54,6 +55,7 @@ namespace NanoPSI
                 TimeValues = new List<double>();
                 Offset = 0.0;
                 ConnectionStatus = "Not Connected";
+                IsActive = false;
             }
 
             public void AddPressureValue(double pressure, double time)
@@ -75,7 +77,9 @@ namespace NanoPSI
             InitializeComponent();
             CreateChart();
             InitializeTimer();
+            InitializeTable();
             DiscoverDevices();
+            TestSqlConnection();
             dataGrid.ItemsSource = transducerDataCollection;
 
             minThresh.Text = minThreshold.ToString();
@@ -83,48 +87,94 @@ namespace NanoPSI
         }
 
         /**************** SQL Connection Functions ************************************************/
-        // Test Connection to SQL Server
         
-        
-        // Writes to mySQL Server
-
-
-        // Reads from mySQL Server
-        public static void ReadFromDatabase()
+        // Test Connection to mySQL Server
+        private void TestSqlConnection()
         {
-            // Define the connection string
-            string connStr = "server=localhost;port=3306;database=sys;user=root;password=NinerGraduate-2024;";
-
             try
             {
-                // Establish a connection to the database
+                using (MySqlConnection conn = new MySqlConnection(connStr))
+                {
+                    conn.Open(); // Open the connection just to test
+                    sqlConnLabel.Content = "Connected";
+                    sqlConnLabel.Foreground = new SolidColorBrush(Colors.Green);
+                }
+            }
+            catch (Exception ex)
+            {
+                sqlConnLabel.Content = "Not Connected";
+                sqlConnLabel.Foreground = new SolidColorBrush(Colors.Red);
+                MessageBox.Show($"Failed to connect to database: {ex.Message}");
+            }
+        }
+
+        // Writes to mySQL Server
+        private void WriteToDatabase()
+        {
+            try
+            {
                 using (MySqlConnection conn = new MySqlConnection(connStr))
                 {
                     conn.Open(); // Open the connection
 
-                    // Define the SQL query to select all records from the 'nanopsi' table
-                    string sql = "SELECT * FROM sys.nanopsi";
+                    // Create a table named after the current date and time
+                    string tableName = "Data_" + DateTime.Now.ToString("yyyyMMddHHmmss");
+                    string createTableSql = $"CREATE TABLE {tableName} (TransducerName VARCHAR(255), PressureValues TEXT, TimeValues TEXT, IsActive BOOLEAN, ConnectionStatus VARCHAR(255));";
+                    using (MySqlCommand cmd = new MySqlCommand(createTableSql, conn))
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    // Insert data from each TransducerData object into the table
+                    foreach (var transducer in transducerDataCollection)
+                    {
+                        string insertSql = $"INSERT INTO {tableName} (TransducerName, PressureValues, TimeValues, IsActive, ConnectionStatus) VALUES (@TransducerName, @PressureValues, @TimeValues, @IsActive, @ConnectionStatus);";
+                        using (MySqlCommand cmd = new MySqlCommand(insertSql, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@TransducerName", transducer.TransducerName);
+                            cmd.Parameters.AddWithValue("@PressureValues", string.Join(",", transducer.PressureValues));
+                            cmd.Parameters.AddWithValue("@TimeValues", string.Join(",", transducer.TimeValues));
+                            cmd.Parameters.AddWithValue("@IsActive", transducer.IsActive);
+                            cmd.Parameters.AddWithValue("@ConnectionStatus", transducer.ConnectionStatus);
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred writing to the database: {ex.Message}");
+            }
+        }
+
+        // Reads from mySQL Server
+        public void ReadFromDatabase(string tableName)
+        {
+            try
+            {
+                using (MySqlConnection conn = new MySqlConnection(connStr))
+                {
+                    conn.Open(); // Open the connection
+
+                    // Define the SQL query to select all records from the specified table
+                    string sql = $"SELECT * FROM {tableName};";
                     using (MySqlCommand cmd = new MySqlCommand(sql, conn))
                     {
-                        // Execute the query and obtain a MySqlDataReader object
                         using (MySqlDataReader reader = cmd.ExecuteReader())
                         {
-                            // Check if there are columns in the result
-                            if (reader.HasRows)
+                            transducerDataCollection.Clear(); // Clear existing data
+                            while (reader.Read())
                             {
-                                // Read rows from the result set
-                                while (reader.Read())
+                                var transducer = new TransducerData(0) // Assuming 0 is placeholder for actual transducer number
                                 {
-                                    string transducerName = reader.GetString("Transducer Name");
-                                    string connStatus = reader.GetString("Connection Status");
+                                    TransducerName = reader["TransducerName"].ToString(),
+                                    IsActive = Convert.ToBoolean(reader["IsActive"]),
+                                    ConnectionStatus = reader["ConnectionStatus"].ToString(),
+                                };
+                                transducer.PressureValues = reader["PressureValues"].ToString().Split(',').Select(double.Parse).ToList();
+                                transducer.TimeValues = reader["TimeValues"].ToString().Split(',').Select(double.Parse).ToList();
 
-                                    // Process data here
-                                    MessageBox.Show($"Name: {transducerName}, Connection Status: {connStatus}");
-                                }
-                            }
-                            else
-                            {
-                                MessageBox.Show("No rows found.");
+                                transducerDataCollection.Add(transducer);
                             }
                         }
                     }
@@ -132,7 +182,7 @@ namespace NanoPSI
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"An error occurred: {ex.Message}");
+                MessageBox.Show($"An error occurred reading from the database: {ex.Message}");
             }
         }
 
@@ -296,7 +346,7 @@ namespace NanoPSI
 
             for (int i = 1; i <= 15; i++)
             {
-                double voltage = random.NextDouble() < 0.9 ? random.NextDouble() * 4.1 : -1;
+                double voltage = (random.NextDouble() * 4.0) + 0.5;
                 sb.Append($"{i}:{voltage:F1}");
 
                 if (i < 15)
@@ -331,7 +381,6 @@ namespace NanoPSI
             {
                 ReadMCU(elapsed.TotalSeconds);
                 UpdateChartData(elapsed.TotalSeconds);
-                UpdateDataGrid();
             } 
             catch (Exception ex)
             {
@@ -706,26 +755,63 @@ namespace NanoPSI
 
         private double ConvertVoltageToPressure(double voltage)
         {
+            const double minVoltage = 0.5;
+            const double maxVoltage = 4.5;
+            const double maxPressure = 400.0;
+
+            // Check for error state voltage
             if (voltage == -1)
             {
                 return -1;
             }
 
-            return (voltage / 4.1) * 400; // Convert 0-4.1V to 0-400psi
+            // Normalize the voltage to a 0-1 scale
+            double normalizedVoltage = (voltage - minVoltage) / (maxVoltage - minVoltage);
+
+            // Convert normalized voltage to pressure
+            double pressure = normalizedVoltage * maxPressure;
+
+            return pressure;
         }
 
-        private void UpdateDataGrid()
+        private void InitializeTable()
         {
-            foreach (var item in dataGrid.Items)
+            for (int i = 1; i <= 15; i++) // Assuming you have 15 transducers
             {
-                var transducerData = item as TransducerData;
-                if (transducerData != null && transducerData.PressureValues.Count > 0)
+                var transducer = new TransducerData(i);
+                transducerDataCollection.Add(transducer);
+            }
+        }
+
+        private List<string> FetchTableNames()
+        {
+            var tableNames = new List<string>();
+            string connStr = "server=localhost;port=3306;database=sys;user=root;password=NinerGraduate-2024;";
+
+            using (var conn = new MySqlConnection(connStr))
+            {
+                try
                 {
-                    int lastIndex = transducerData.PressureValues.Count - 1;
-                    transducerData.LastPressureValue = transducerData.PressureValues[lastIndex];
-                    transducerData.LastTimeValue = transducerData.TimeValues[lastIndex];
+                    conn.Open();
+                    // Assuming your table names are easily distinguishable and follow a specific pattern
+                    var query = "SHOW TABLES LIKE 'Data_%';"; // Adjust pattern as needed
+                    using (var cmd = new MySqlCommand(query, conn))
+                    {
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                tableNames.Add(reader.GetString(0)); // Adjust index if needed
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Failed to fetch table names: {ex.Message}");
                 }
             }
+            return tableNames;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -736,7 +822,6 @@ namespace NanoPSI
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
             //TODO: Code troubleshoot button for SQL connection
-            ReadFromDatabase();
         }
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
@@ -755,20 +840,38 @@ namespace NanoPSI
             minThresh.IsEnabled = false;
             maxThresh.IsEnabled = false;
 
-            // Alert about Data Removal
+            // Enable Read-Only for Table
+
+
+            // Alert about Data Removal (only if a there was a test ran or data brought in)
             MessageBox.Show("Starting the test will replace data, do you want to continue?"); //make a yes no message box
         }
 
         private void Button_Click_3(object sender, RoutedEventArgs e)
         {
-            // TODO: Save data button to save to server
-            // Saves the name of each transducer and all pressures and times recorded for each transducer
-            // only saves the data for the current transducers visible on the chart and data grid view
+            MessageBox.Show("This will save all transducer data for the test, do you wish to continue?"); //make this a yes no message box
+            WriteToDatabase();
         }
 
         private void Button_Click_4(object sender, RoutedEventArgs e)
         {
-            // TODO: Find data button to pull from server
+            var tableNames = FetchTableNames();
+            if (tableNames.Count == 0)
+            {
+                MessageBox.Show("No data available.");
+                return;
+            }
+
+            // This is a placeholder for actual selection logic
+            // For demonstration purposes only: the user would select a table name from a more suitable UI element
+            var selectedTableName = MessageBox.Show("Select the data set to load. This message is a placeholder and should be replaced by actual selection UI.", "Select Data Set", MessageBoxButton.OKCancel);
+
+            // Placeholder condition to simulate selection
+            if (selectedTableName == MessageBoxResult.OK)
+            {
+                // Assuming the first table name is selected for demonstration
+                ReadFromDatabase(tableNames[0]);
+            }
         }
 
         private void Button_Click_StopTest(object sender, RoutedEventArgs e)
@@ -778,15 +881,18 @@ namespace NanoPSI
             var endTime = DateTime.Now;
             lblEndTime.Content = endTime.ToLongTimeString();
 
-            //Disable and Enable Buttons
+            // Disable and Enable Buttons
             startButton.IsEnabled = true;
             stopButton.IsEnabled = false;
             pauseButton.IsEnabled = false;
             pauseButton.Content = "Pause";
 
-            //Enable Threshold Input
+            // Enable Threshold Input
             minThresh.IsEnabled = true;
             maxThresh.IsEnabled = true;
+
+            // Disable Read-Only for Table
+
 
             var elapsed = endTime - startTime;
             lblElapsedTime.Content = $"{elapsed.Hours:00}:{elapsed.Minutes:00}:{elapsed.Seconds:00}";
