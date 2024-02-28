@@ -149,7 +149,7 @@
         <!-- Middle section with Real Time Pressure Data GroupBox and LightningChart -->
         <StackPanel Grid.Column="1">
             <GroupBox Header="Real Time Pressure Data">
-                <DataGrid AutoGenerateColumns="False" Name="dataGrid" IsReadOnly="True" Height="400" Width="900">
+                <DataGrid AutoGenerateColumns="False" Name="dataGrid" IsReadOnly="True" Height="400" Width="900" >
                     <DataGrid.Columns>
                         <!-- Transducer Active Checkbox Column -->
                         <DataGridCheckBoxColumn Header="Transducer Active" Binding="{Binding IsActive}" Width="Auto"/>

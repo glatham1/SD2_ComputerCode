@@ -4,27 +4,20 @@ using Arction.Wpf.Charting.Axes;
 using Arction.Wpf.Charting.SeriesXY;
 using Arction.Wpf.Charting.Views.ViewXY;
 using InTheHand.Net.Bluetooth;
-using InTheHand.Net.Bluetooth.Factory;
 using InTheHand.Net.Sockets;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
+using System.Data.Common;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Forms;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
+using MySql.Data.MySqlClient;
 
 namespace NanoPSI
 {
@@ -90,15 +83,61 @@ namespace NanoPSI
         }
 
         /**************** SQL Connection Functions ************************************************/
-
+        // Test Connection to SQL Server
+        
+        
         // Writes to mySQL Server
 
 
         // Reads from mySQL Server
+        public static void ReadFromDatabase()
+        {
+            // Define the connection string
+            string connStr = "server=localhost;port=3306;database=sys;user=root;password=NinerGraduate-2024;";
 
+            try
+            {
+                // Establish a connection to the database
+                using (MySqlConnection conn = new MySqlConnection(connStr))
+                {
+                    conn.Open(); // Open the connection
+
+                    // Define the SQL query to select all records from the 'nanopsi' table
+                    string sql = "SELECT * FROM sys.nanopsi";
+                    using (MySqlCommand cmd = new MySqlCommand(sql, conn))
+                    {
+                        // Execute the query and obtain a MySqlDataReader object
+                        using (MySqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            // Check if there are columns in the result
+                            if (reader.HasRows)
+                            {
+                                // Read rows from the result set
+                                while (reader.Read())
+                                {
+                                    string transducerName = reader.GetString("Transducer Name");
+                                    string connStatus = reader.GetString("Connection Status");
+
+                                    // Process data here
+                                    MessageBox.Show($"Name: {transducerName}, Connection Status: {connStatus}");
+                                }
+                            }
+                            else
+                            {
+                                MessageBox.Show("No rows found.");
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}");
+            }
+        }
 
         /**************** Bluetooth Connection Functions ******************************************/
-        
+
         // Find Bluetooth Devices
         private void DiscoverDevices()
         {
@@ -697,6 +736,7 @@ namespace NanoPSI
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
             //TODO: Code troubleshoot button for SQL connection
+            ReadFromDatabase();
         }
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
@@ -706,16 +746,17 @@ namespace NanoPSI
             lblStartTime.Content = startTime.ToLongTimeString();
             timer.Start();
 
-            //Disable and Enable Buttons
+            // Disable and Enable Buttons
             startButton.IsEnabled = false;
             pauseButton.IsEnabled = true;
             stopButton.IsEnabled = true;
 
-            //Disable Threshold Input
+            // Disable Threshold Input
             minThresh.IsEnabled = false;
             maxThresh.IsEnabled = false;
 
-            //Begin Test
+            // Alert about Data Removal
+            MessageBox.Show("Starting the test will replace data, do you want to continue?"); //make a yes no message box
         }
 
         private void Button_Click_3(object sender, RoutedEventArgs e)
