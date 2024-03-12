@@ -24,6 +24,21 @@ namespace NanoPSI
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
+    
+    /*
+     * TODO
+     * Fix DataGrid to display what is shown on lightning chart
+     * Remove chart data view groupbox
+     * Fix messagebox popups
+     * Make it so when dataGrid is changed, then changes are saved
+     * Take away display on left side of lightning charts
+     * Add control to choose what data to find and bring in
+     * Troubleshoot buttons
+     * Adjust lightning charts to use PSI instead of units
+     * Adjust cursor to only show values of what is visible on screen
+     * Get read and write sql functions working properly
+     */
+
     public partial class MainWindow : Window
     {
         private LightningChart _chart = null;
@@ -33,6 +48,8 @@ namespace NanoPSI
         private int minThreshold = 0;
         private int maxThreshold = 400;
         private ObservableCollection<TransducerData> transducerDataCollection = new ObservableCollection<TransducerData>();
+
+        // Change this for local server
         private const string connStr = "server=127.0.0.1;port=3306;database=sys;user=root;password=NinerGraduate-2024;";
 
         public class TransducerData
