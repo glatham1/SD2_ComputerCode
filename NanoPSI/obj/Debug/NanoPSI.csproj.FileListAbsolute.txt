@@ -79,3 +79,5 @@ C:\Users\grays\source\repos\SD2_ComputerCode\NanoPSI\bin\Debug\Microsoft.Bcl.Asy
 C:\Users\grays\source\repos\SD2_ComputerCode\NanoPSI\bin\Debug\MySql.Data.xml
 C:\Users\grays\source\repos\SD2_ComputerCode\NanoPSI\bin\Debug\System.Diagnostics.DiagnosticSource.xml
 C:\Users\grays\source\repos\SD2_ComputerCode\NanoPSI\bin\Debug\System.IO.Pipelines.xml
+C:\Users\grays\source\repos\SD2_ComputerCode\NanoPSI\obj\Debug\FindWindow.g.cs
+C:\Users\grays\source\repos\SD2_ComputerCode\NanoPSI\obj\Debug\FindWindow.baml

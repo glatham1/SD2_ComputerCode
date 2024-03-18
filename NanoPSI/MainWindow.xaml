@@ -14,8 +14,7 @@
         <!-- Define three columns: left, middle, right -->
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="2*" />
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="2.5*" />
         </Grid.ColumnDefinitions>
 
         <!-- Set the styles for controls -->
@@ -60,7 +59,6 @@
         <!-- Background panels for each column -->
         <Border Background="#FFFFFF" Grid.Column="0"/>
         <Border Background="#D3D3D3" Grid.Column="1"/>
-        <Border Background="#FFFFFF" Grid.Column="2"/>
 
         <!-- Left section with GroupBoxes -->
         <StackPanel Grid.Column="0">
@@ -81,7 +79,7 @@
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
 
                 <!-- Microcontroller Connection GroupBox -->
-                <GroupBox Header="Microcontroller Connection">
+                <GroupBox Header="Test Fixture Connection">
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                         <ComboBox x:Name="mcuConnect" Width="200" Height="30" Margin="10" SelectionChanged="mcuConnect_SelectionChanged">
                             <ComboBoxItem Content="Select Bluetooth Device" IsSelected="True" />
@@ -95,7 +93,7 @@
                 </GroupBox>
 
                 <!-- SQL Server Status GroupBox -->
-                <GroupBox Header="SQL Server Status">
+                <GroupBox Header="Database Connection">
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                         <StackPanel Orientation="Horizontal">
                             <Label Content="Status:"/>
@@ -144,33 +142,53 @@
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
+
+            <!-- New GroupBox for Save and Find Data buttons -->
+            <GroupBox Header="Data Management">
+                <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                    <!-- StackPanel for Save Data Button and its label -->
+                    <StackPanel VerticalAlignment="Center" Margin="5" Width="250" Height="Auto">
+                        <Button Content="Save Data" Width="200" HorizontalAlignment="Center" Click="Button_Click_3" FontWeight="Bold" />
+                        <Label HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                            <TextBlock Text="Saves all pressure transducer data." TextWrapping="Wrap" TextAlignment="Center"/>
+                        </Label>
+                    </StackPanel>
+
+                    <!-- StackPanel for Find Data Button and its label -->
+                    <StackPanel VerticalAlignment="Center" Margin="5" Width="250" Height="Auto">
+                        <Button Content="Find Data" Width="200" HorizontalAlignment="Center" Click="Button_Click_4" />
+                        <Label HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                            <TextBlock Text="Find and import pressure transducer data." TextWrapping="Wrap" TextAlignment="Center"/>
+                        </Label>
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
         </StackPanel>
 
         <!-- Middle section with Real Time Pressure Data GroupBox and LightningChart -->
         <StackPanel Grid.Column="1">
-            <GroupBox Header="Real Time Pressure Data">
-                <DataGrid AutoGenerateColumns="False" Name="dataGrid" IsReadOnly="True" Height="400" Width="900" >
+            <GroupBox Header="Pressure Data">
+                <DataGrid AutoGenerateColumns="False" Name="dataGrid" IsReadOnly="False" Height="400" Width="Auto" CellEditEnding="DataGrid_CellEditEnding">
                     <DataGrid.Columns>
                         <!-- Transducer Active Checkbox Column -->
-                        <DataGridCheckBoxColumn Header="Transducer Active" Binding="{Binding IsActive}" Width="Auto"/>
+                        <DataGridCheckBoxColumn Header="Transducer Active" Binding="{Binding IsActive}" Width="0.75*"/>
 
                         <!-- Transducer # Column -->
-                        <DataGridTextColumn Header="Transducer #" Binding="{Binding TransducerName}" Width="Auto"/>
+                        <DataGridTextColumn Header="Transducer #" Binding="{Binding TransducerName}" Width="2*"/>
 
                         <!-- Pressure (PSI) Column -->
-                        <DataGridTextColumn Header="Pressure (PSI)" Binding="{Binding LastPressureValue}" Width="Auto"/>
+                        <DataGridTextColumn Header="Pressure (PSI)" Binding="{Binding LastPressureValue}" Width="*"/>
 
                         <!-- Time (s) Column -->
-                        <DataGridTextColumn Header="Time (s)" Binding="{Binding LastTimeValue}" Width="Auto"/>
+                        <DataGridTextColumn Header="Time (s)" Binding="{Binding LastTimeValue}" Width="*"/>
 
                         <!-- Connection Status Column -->
-                        <DataGridTextColumn Header="Connection Status" Binding="{Binding ConnectionStatus}" Width="Auto"/>
+                        <DataGridTextColumn Header="Connection Status" Binding="{Binding ConnectionStatus}" Width="*"/>
 
                         <!-- Offset Column -->
-                        <DataGridTextColumn Header="Offset" Binding="{Binding Offset}" Width="Auto"/>
+                        <DataGridTextColumn Header="Offset" Binding="{Binding Offset}" Width="0.5*"/>
                     </DataGrid.Columns>
                 </DataGrid>
-
             </GroupBox>
 
             <GroupBox xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" Background="#202020">
@@ -180,7 +198,7 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <StackPanel Grid.Row="0" Orientation="Horizontal">
-                        <CheckBox Content="Show values next to cursor" IsChecked="True" Name="checkBoxShowValuesNextToCursor" Checked="checkBox1_CheckedChanged" Unchecked="checkBox1_CheckedChanged" Foreground="White"/>
+                        <CheckBox Content="Show values next to cursor" IsChecked="False" Name="checkBoxShowValuesNextToCursor" Checked="checkBox1_CheckedChanged" Unchecked="checkBox1_CheckedChanged" Foreground="White"/>
                         <Grid Width="8"/>
                         <CheckBox Content="Snap to the nearest data point" IsChecked="True" Name="checkBoxSnapToNearestDataPoint" Checked="checkBoxSnapToNearestDataPoint_Checked" Unchecked="checkBoxSnapToNearestDataPoint_Unchecked" Foreground="White" />
                         <Grid Width="8"/>
@@ -188,60 +206,8 @@
                         <Grid Width="8"/>
                         <RadioButton Content="Coarse (fast)" Name="radioButtonCoarse" Foreground="White"/>
                     </StackPanel>
-                    <Grid Grid.Row="1" Name="gridChart" Height="500"/>
+                    <Grid Grid.Row="1" Name="gridChart" Height="500" />
                 </Grid>
-            </GroupBox>
-        </StackPanel>
-
-        <!-- Right section with Chart Data View GroupBox -->
-        <StackPanel Grid.Column="2">
-            <GroupBox Header="Chart Data View">
-                <StackPanel>
-                    <!-- Inputs for Pressure Range and Time Range -->
-                    <Label Content="Pressure Range:" />
-                    <TextBox />
-
-                    <Label Content="Time Range:" />
-                    <TextBox />
-
-                    <!-- DropDown for Transducer selection -->
-                    <ComboBox>
-                        <ComboBoxItem Content="Choose Data to View" IsSelected="True" />
-                        <!-- Generate ComboBoxItems for Transducers 1-15 -->
-                        <ComboBoxItem Content="Transducer 1" />
-                        <ComboBoxItem Content="Transducer 2" />
-                        <!-- ... other ComboBoxItems for each Transducer ... -->
-                        <ComboBoxItem Content="Transducer 15" />
-                    </ComboBox>
-
-                    <!-- DataGrid for Transducer Data -->
-                    <DataGrid AutoGenerateColumns="False" IsReadOnly="True" Height="400" Width="420">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Transducer #" Binding="{Binding TransducerNumber}" Width="150"/>
-                            <DataGridTextColumn Header="Pressure" Binding="{Binding Pressure}" Width="150"/>
-                            <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="120"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-
-                    <!-- Buttons with their descriptive labels -->
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <!-- StackPanel for Save Data Button and its label -->
-                        <StackPanel VerticalAlignment="Center" Margin="5" Width="200" Height="150">
-                            <Button Content="Save Data" Width="200" HorizontalAlignment="Center" Click="Button_Click_3" />
-                            <Label HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
-                                <TextBlock Text="Saves the current graph's data and visuals." TextWrapping="Wrap" TextAlignment="Center"/>
-                            </Label>
-                        </StackPanel>
-
-                        <!-- StackPanel for Find Data Button and its label -->
-                        <StackPanel VerticalAlignment="Center" Margin="5" Width="200" Height="150">
-                            <Button Content="Find Data" Width="200" HorizontalAlignment="Center" Click="Button_Click_4" />
-                            <Label HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
-                                <TextBlock Text="Upload file to view on the graph. (Note: Will get rid of current chart data, make sure to save before uploading new data.)" TextWrapping="Wrap" TextAlignment="Center"/>
-                            </Label>
-                        </StackPanel>
-                    </StackPanel>
-                </StackPanel>
             </GroupBox>
         </StackPanel>
     </Grid>
