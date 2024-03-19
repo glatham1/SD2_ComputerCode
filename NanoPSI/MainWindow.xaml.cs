@@ -20,25 +20,30 @@ using System.Windows.Threading;
 using System.Windows.Data;
 using System.ComponentModel;
 using MySql.Data.MySqlClient;
+using System.Globalization;
 
 namespace NanoPSI
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    
-    /*
-     * TODO
-     * Fix DataGrid to display what is shown on lightning chart
-     * Fix messagebox popups
-     * Make it so when dataGrid is changed, then changes are saved
-     * Take away display on left side of lightning charts
-     * Troubleshoot buttons
-     * Get read and write sql functions working properly
-     */
+    public class PressureValidationConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is double pressure)
+            {
+                var mainWindow = Application.Current.MainWindow as MainWindow; // Assuming MainWindow is the window class name
+                return pressure > mainWindow.maxThreshold || pressure < mainWindow.minThreshold;
+            }
+            return false;
+        }
 
-    // if connection is connected then lettering should be green and everything should be usable, if not connected then lettering should be red and everything in that row should be default and gray out
-    // if connected, if is active is checked then everything runs as normal and if not checked then keep updating but gray out to indicate it will not be saved
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
 
     public partial class MainWindow : Window
     {
@@ -46,12 +51,14 @@ namespace NanoPSI
         private DispatcherTimer timer;
         private DateTime startTime;
         BluetoothClient client = new BluetoothClient();
-        private int minThreshold = 0;
-        private int maxThreshold = 400;
+        public int minThreshold = 0;
+        public int maxThreshold = 400;
+        private bool firstRun = true;
         private ObservableCollection<TransducerData> transducerDataCollection = new ObservableCollection<TransducerData>();
 
         // Change this for local server
         private const string connStr = "server=127.0.0.1;port=3306;database=sys;user=root;password=NinerGraduate-2024;";
+        //private const string connStr = "server=127.0.0.1;port=3306;database=sys;user=root;password=NanoPSI2024;";
 
         public class TransducerData : INotifyPropertyChanged
         {
@@ -87,9 +94,21 @@ namespace NanoPSI
             public List<double> PressureValues { get; set; }
             public List<double> TimeValues { get; set; }
             public double Offset { get; set; }
-            public string ConnectionStatus { get; set; }
 
-            // New properties for the last pressure and time values
+            private string _connectionStatus;
+            public string ConnectionStatus
+            {
+                get => _connectionStatus;
+                set
+                {
+                    if (_connectionStatus != value)
+                    {
+                        _connectionStatus = value;
+                        OnPropertyChanged(nameof(ConnectionStatus));
+                    }
+                }
+            }
+
             private double _lastPressureValue;
             public double LastPressureValue
             {
@@ -132,7 +151,7 @@ namespace NanoPSI
                 PressureValues = new List<double>();
                 TimeValues = new List<double>();
                 Offset = 0.0;
-                ConnectionStatus = "Not Connected";
+                ConnectionStatus = "N/A";
                 IsActive = false;
             }
 
@@ -153,9 +172,9 @@ namespace NanoPSI
             Arction.Wpf.Charting.LightningChart.SetDeploymentKey(deploymentKey);
 
             InitializeComponent();
+            InitializeTable();
             CreateChart();
             InitializeTimer();
-            InitializeTable();
             DiscoverDevices();
             TestSqlConnection();
 
@@ -198,30 +217,35 @@ namespace NanoPSI
                     // Assume `transducerDataCollection` is a collection of your transducer data objects
                     foreach (var transducer in transducerDataCollection)
                     {
-                        // Format the pressure and time lists
-                        string formattedPressure = string.Join(";", transducer.PressureValues);
-                        string formattedTime = string.Join(";", transducer.TimeValues);
+                        if (transducer.IsActive)
+                        {
+                            // Format the pressure and time lists
+                            string formattedPressure = string.Join(";", transducer.PressureValues);
+                            string formattedTime = string.Join(";", transducer.TimeValues);
 
-                        // Prepare the INSERT statement with the correct table and column names
-                        string insertSql = @"INSERT INTO `sys`.`nanopsi`
+                            // Prepare the INSERT statement with the correct table and column names
+                            string insertSql = @"INSERT INTO `sys`.`nanopsi`
                                     (`Saved Date/Time`, `Transducer Name`, `Pressure`, `Time`, `Offset`, `Connection Status`, `Is Active`) 
                                     VALUES
                                     (@SavedDateTime, @TransducerName, @Pressure, @Time, @Offset, @ConnectionStatus, @IsActive);";
 
-                        using (MySqlCommand cmd = new MySqlCommand(insertSql, conn))
-                        {
-                            cmd.Parameters.AddWithValue("@SavedDateTime", now);
-                            cmd.Parameters.AddWithValue("@TransducerName", transducer.TransducerName);
-                            cmd.Parameters.AddWithValue("@Pressure", formattedPressure);
-                            cmd.Parameters.AddWithValue("@Time", formattedTime);
-                            cmd.Parameters.AddWithValue("@Offset", transducer.Offset); // Assuming `Offset` is already part of your transducer data object
-                            cmd.Parameters.AddWithValue("@ConnectionStatus", transducer.ConnectionStatus);
-                            cmd.Parameters.AddWithValue("@IsActive", transducer.IsActive ? "Yes" : "No"); // Assuming `IsActive` is a boolean you're converting to "Yes" or "No"
+                            using (MySqlCommand cmd = new MySqlCommand(insertSql, conn))
+                            {
+                                cmd.Parameters.AddWithValue("@SavedDateTime", now);
+                                cmd.Parameters.AddWithValue("@TransducerName", transducer.TransducerName);
+                                cmd.Parameters.AddWithValue("@Pressure", formattedPressure);
+                                cmd.Parameters.AddWithValue("@Time", formattedTime);
+                                cmd.Parameters.AddWithValue("@Offset", transducer.Offset); // Assuming `Offset` is already part of your transducer data object
+                                cmd.Parameters.AddWithValue("@ConnectionStatus", transducer.ConnectionStatus);
+                                cmd.Parameters.AddWithValue("@IsActive", transducer.IsActive ? "Yes" : "No"); // Assuming `IsActive` is a boolean you're converting to "Yes" or "No"
 
-                            cmd.ExecuteNonQuery();
+                                cmd.ExecuteNonQuery();
+                            }
                         }
                     }
                 }
+
+                MessageBox.Show("Data Saved Successfully");
             }
             catch (Exception ex)
             {
@@ -244,7 +268,7 @@ namespace NanoPSI
 
                     // Define the SQL query to select all records from nanopsi table for the given date
                     // Assuming the 'Saved Date/Time' column is stored in a DATE or DATETIME format that can be compared with a string
-                    string sql = $"SELECT * FROM nanopsi WHERE DATE(`Saved Date/Time`) = '{formattedDate}';";
+                    string sql = $"SELECT * FROM nanopsi WHERE `Saved Date/Time` = '{formattedDate}';";
 
                     using (MySqlCommand cmd = new MySqlCommand(sql, conn))
                     {
@@ -256,7 +280,7 @@ namespace NanoPSI
                             {
                                 // Assuming the reader can directly fetch the offset as double, adjust if necessary
                                 double offset = reader["Offset"] != DBNull.Value ? Convert.ToDouble(reader["Offset"]) : 0.0;
-                                var transducer = new TransducerData(0) // The 0 placeholder might need to be replaced or managed differently
+                                var transducer = new TransducerData(0)
                                 {
                                     TransducerName = reader["Transducer Name"].ToString(),
                                     IsActive = reader["Is Active"].ToString().Equals("Yes"),
@@ -268,6 +292,9 @@ namespace NanoPSI
                                 transducer.PressureValues = reader["Pressure"].ToString().Split(';').Select(double.Parse).ToList();
                                 transducer.TimeValues = reader["Time"].ToString().Split(';').Select(double.Parse).ToList();
 
+                                transducer.LastPressureValue = transducer.PressureValues[transducer.PressureValues.Count - 1];
+                                transducer.LastTimeValue = transducer.TimeValues[transducer.TimeValues.Count - 1];
+
                                 transducerDataCollection.Add(transducer);
                             }
                         }
@@ -276,6 +303,8 @@ namespace NanoPSI
 
                 // Assuming you have a method or logic to refresh the DataGrid with the new transducerDataCollection
                 dataGrid.Items.Refresh();
+
+                MessageBox.Show("Data Imported Successfully");
             }
             catch (Exception ex)
             {
@@ -298,6 +327,12 @@ namespace NanoPSI
                     mcuConnect.DisplayMemberPath = "DeviceName";
                     mcuConnect.SelectedValuePath = "DeviceAddress";
                     mcuConnect.Items.Add(device);
+
+                    if (device.DeviceName == "NanoPSI")
+                    {
+                        ConnectToDevice(device);
+                        break;
+                    }
                 }
             }
             catch (Exception ex)
@@ -320,6 +355,8 @@ namespace NanoPSI
         {
             try
             {
+                BluetoothSecurity.PairRequest(device.DeviceAddress, "1234");
+
                 client.BeginConnect(device.DeviceAddress, BluetoothService.SerialPort, new AsyncCallback(ConnectCallback), device);
                 mcuStatus.Content = "Connected";
                 mcuStatus.Foreground = new SolidColorBrush(Colors.Green);
@@ -357,39 +394,76 @@ namespace NanoPSI
                 //if (client.Connected)
                 //{
                 //    NetworkStream stream = client.GetStream();
-                //    if (stream.CanRead)
+                //    if (stream.CanRead && stream.DataAvailable)
                 //    {
                 //        byte[] buffer = new byte[1024];
                 //        int bytesRead = stream.Read(buffer, 0, buffer.Length);
                 //        string inputStr = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-                string inputStr = RandomTestString();
+                        string inputStr = RandomTestString();
 
-                        string[] transducerValues = inputStr.Split(',');
-                        for (int i = 0; i < transducerValues.Length; i++)
-                        {
-                            string[] parts = transducerValues[i].Split(':');
-                            int transducerNumber = int.Parse(parts[0]);
-                            double analogVoltage = parts[1] == "-1" ? -1 : double.Parse(parts[1]);
+                        // Split the input string by newline characters to get individual sets of data
+                        // string[] dataSet = inputStr.Split(new string[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
 
-                            double pressure = ConvertVoltageToPressure(analogVoltage);
+                        // Initialize a variable to hold the last complete set of data
+                        // string lastCompleteSet = null;
 
-                            // Find or create the corresponding TransducerData object
-                            var transducerData = transducerDataCollection.FirstOrDefault(t => t.TransducerName == "Transducer " + transducerNumber);
-                            if (transducerData == null)
+                        // Iterate through the data sets from the end to find the last complete set
+                        //for (int i = dataSet.Length - 1; i >= 0; i--)
+                        //{
+                        //    // Check if the set contains data for transducers 1 through 15
+                        //    bool isComplete = true;
+                        //    for (int j = 1; j <= 15; j++)
+                        //    {
+                        //        if (!dataSet[i].Contains(j + ":["))
+                        //        {
+                        //            isComplete = false;
+                        //            break;
+                        //        }
+                        //    }
+
+                        //    // If a complete set is found, assign it to lastCompleteSet and break the loop
+                        //    if (isComplete)
+                        //    {
+                        //        lastCompleteSet = dataSet[i];
+                        //        break;
+                        //    }
+                        //}
+
+                        //if (lastCompleteSet != null)
+                        //{
+                            string[] transducerValues = inputStr.Split(',');
+                            for (int i = 0; i < transducerValues.Length; i++)
                             {
-                                transducerData = new TransducerData(transducerNumber);
-                                transducerDataCollection.Add(transducerData);
-                            }
+                                string[] parts = transducerValues[i].Split(':');
+                                int transducerNumber = int.Parse(parts[0]);
 
-                            // Update the TransducerData object
-                            transducerData.IsActive = pressure != -1;
-                            transducerData.ConnectionStatus = transducerData.IsActive ? "Connected" : "Not Connected";
-                            if (transducerData.IsActive)
-                            {
-                                pressure += transducerData.Offset; // Apply the offset
-                                transducerData.AddPressureValue(pressure, time);
+                                // Remove the square brackets around the analog voltage value before parsing
+                                double analogVoltage = double.Parse(parts[1].Trim().Trim('[', ']'));
+
+                                double pressure = ConvertVoltageToPressure(analogVoltage);
+
+                                // Find or create the corresponding TransducerData object
+                                var transducerData = transducerDataCollection[transducerNumber - 1];
+                                if (transducerData == null)
+                                {
+                                    transducerData = new TransducerData(transducerNumber);
+                                    transducerDataCollection.Add(transducerData);
+                                }
+
+                                // Update the TransducerData object
+                                transducerData.IsActive = pressure != -1;
+                                transducerData.ConnectionStatus = transducerData.IsActive ? "Connected" : "Not Connected";
+                                if (transducerData.IsActive)
+                                {
+                                    pressure += transducerData.Offset; // Apply the offset
+                                    transducerData.AddPressureValue(pressure, time);
+                                }
                             }
-                        }
+                        //}
+                        //else
+                        //{
+                        //    System.Windows.MessageBox.Show("No complete set of data found in the input string.");
+                        //}
                 //    }
                 //    else
                 //    {
@@ -444,7 +518,7 @@ namespace NanoPSI
             for (int i = 1; i <= 15; i++)
             {
                 double voltage = (random.NextDouble() * 4.0) + 0.5;
-                sb.Append($"{i}:{voltage:F1}");
+                sb.Append($"{i}:[{voltage:F1}]");
 
                 if (i < 15)
                 {
@@ -477,7 +551,7 @@ namespace NanoPSI
             try
             {
                 ReadMCU(elapsed.TotalSeconds);
-                UpdateChartData(elapsed.TotalSeconds);
+                UpdateChartData();
             } 
             catch (Exception ex)
             {
@@ -589,7 +663,7 @@ namespace NanoPSI
             cursorValueDisplay.LocationRelativeOffset.X = 130;
             cursorValueDisplay.LocationRelativeOffset.Y = -200;
             cursorValueDisplay.Sizing = AnnotationXYSizing.Automatic;
-            cursorValueDisplay.TextStyle.Font = new WpfFont("Lucida Console", 13f, false, false);
+            cursorValueDisplay.TextStyle.Font = new WpfFont("Segoe UI", 13f, false, false);
             cursorValueDisplay.TextStyle.Color = Colors.Black;
             cursorValueDisplay.Text = "";
             cursorValueDisplay.AllowTargetMove = false;
@@ -621,7 +695,7 @@ namespace NanoPSI
 
         }
 
-        private void UpdateChartData(double time)
+        private void UpdateChartData()
         {
             _chart.BeginUpdate();
 
@@ -649,10 +723,45 @@ namespace NanoPSI
                 series.Points = newPoints.ToArray();
             }
 
-            _chart.ViewXY.XAxes[0].SetRange(0, time);
-            _chart.ViewXY.YAxes[0].SetRange(minThreshold, maxThreshold);
+            // Auto-scale the chart to fit the newly added data
+            _chart.ViewXY.ZoomToFit();
 
             _chart.EndUpdate();
+        }
+
+        private void ImportChartData()
+        {
+            int j = 0;
+
+            _chart.BeginUpdate(); // Start updating the chart
+
+            // Clear all existing series from the chart
+            _chart.ViewXY.PointLineSeries.Clear();
+
+            // Define an array of colors for the series
+            System.Windows.Media.Color[] colors = new System.Windows.Media.Color[]
+            {
+                Colors.Red, Colors.Green, Colors.Blue, Colors.Yellow, Colors.Cyan,
+                Colors.Magenta, Colors.Orange, Colors.Purple, Colors.Brown, Colors.Gray,
+                Colors.DarkRed, Colors.DarkGreen, Colors.DarkBlue, Colors.LightPink, Colors.LightGreen
+            };
+
+            foreach (var transducerData in transducerDataCollection)
+            {
+                // Create a new series for each transducer
+                PointLineSeries series = new PointLineSeries(_chart.ViewXY, _chart.ViewXY.XAxes[0], _chart.ViewXY.YAxes[0])
+                {
+                    Title = { Text = transducerData.TransducerName },
+                    LineStyle = { Color = colors[j] }
+                };
+                _chart.ViewXY.PointLineSeries.Add(series);
+                
+                j++;
+            }
+
+            _chart.EndUpdate(); // End updating the chart
+
+            UpdateChartData();
         }
 
         private void cursor_PositionChanged(object sender, PositionChangedEventArgs e)
@@ -713,20 +822,18 @@ namespace NanoPSI
             StringBuilder sb = new StringBuilder();
             int seriesNumber = 1;
 
-            string channelStringFormat = "Transducer {0}: {1,12:#####.###} {2}";
+            string channelStringFormat = "{0}: {1,12:#####.###} {2}";
             bool labelVisible = false;
             bool accurate = radioButtonAccurate.IsChecked == true;
-            string value = "";
 
             foreach (PointLineSeries series in _chart.ViewXY.PointLineSeries)
             {
-                //show series titles and cursor values in them, on the right side of the chart, 
-                //if cursor values are not shown next to the cursor in an annotation
+                bool resolvedOK = false;
+                var value = "";
+
                 if (series.Visible)
                 {
                     series.Title.Visible = !showNextToCursor;
-                    bool resolvedOK = false;
-                    value = "";
 
                     if (accurate)
                     {
@@ -743,14 +850,33 @@ namespace NanoPSI
                     if (resolvedOK)
                     {
                         labelVisible = true;
-                        value = string.Format(channelStringFormat, seriesNumber, seriesYValue.ToString("0.0"), axisY.Units.Text);
+                        value = string.Format(channelStringFormat, transducerDataCollection[seriesNumber - 1].TransducerName, seriesYValue.ToString("0.0"), axisY.Units.Text);
+                        transducerDataCollection[seriesNumber - 1].LastPressureValue = seriesYValue;
+                        transducerDataCollection[seriesNumber - 1].LastTimeValue = cursor.ValueAtXAxis;
                     }
                     else
                     {
-                        value = string.Format(channelStringFormat, seriesNumber, "---", axisY.Units.Text);
+                        value = string.Format(channelStringFormat, transducerDataCollection[seriesNumber - 1].TransducerName, "---", axisY.Units.Text);
                     }
                     sb.AppendLine(value);
                     series.Title.Text = value;
+                }
+                else
+                {
+                    if (accurate)
+                    {
+                        resolvedOK = SolveValueAccurate(series, cursor.ValueAtXAxis, out seriesYValue);
+                    }
+                    else
+                    {
+                        resolvedOK = SolveValueCoarse(series, cursor.ValueAtXAxis, out seriesYValue);
+                    }
+
+                    if (resolvedOK)
+                    {
+                        transducerDataCollection[seriesNumber - 1].LastPressureValue = seriesYValue;
+                        transducerDataCollection[seriesNumber - 1].LastTimeValue = cursor.ValueAtXAxis;
+                    }
                 }
                 seriesNumber++;
             }
@@ -855,6 +981,100 @@ namespace NanoPSI
         }
 
         /***************** Frontend Control Functions *********************************************/
+        private void ControlTest(string testState)
+        {
+            switch (testState)
+            {
+                case "Start":
+                    if (!firstRun)
+                    {
+                        MessageBoxResult result = MessageBox.Show("Starting the test will replace the current data, do you wish to continue?", "Override Data", MessageBoxButton.YesNo);
+                        if (result == MessageBoxResult.No)
+                        {
+                            return;
+                        }
+                        else
+                        {
+                            transducerDataCollection.Clear();
+                            InitializeTable();
+                        }
+                    }
+                    else
+                    {
+                        firstRun = false;
+                    }
+
+                    // Disable and Enable Buttons
+                    startButton.IsEnabled = false;
+                    pauseButton.IsEnabled = true;
+                    stopButton.IsEnabled = true;
+
+                    // Disable Threshold Input
+                    minThresh.IsEnabled = false;
+                    maxThresh.IsEnabled = false;
+
+                    // Enable Read-Only for Table
+                    dataGrid.IsReadOnly = true;
+
+                    // Start Timer
+                    startTime = DateTime.Now;
+                    lblStartTime.Content = startTime.ToLongTimeString();
+                    timer.Start();
+
+                    break;
+
+                case "Pause":
+                    if (timer.IsEnabled)
+                    {
+                        // Timer is running, so pause the test
+                        timer.Stop();
+                        pauseButton.Content = "Resume"; // Change button text to indicate it will now resume the test
+
+                        // Optionally, update other UI elements or state as needed
+                        startButton.IsEnabled = false; // Keep start disabled while paused
+                        stopButton.IsEnabled = true; // Allow stopping the test even when paused
+
+                        // Enable Read-Only for Table
+                        dataGrid.IsReadOnly = false;
+                    }
+                    else
+                    {
+                        timer.Start();
+                        pauseButton.Content = "Pause";
+
+                        startButton.IsEnabled = false;
+                        stopButton.IsEnabled = true;
+
+                        // Enable Read-Only for Table
+                        dataGrid.IsReadOnly = true;
+                    }
+
+                    break;
+
+                case "Stop":
+                    timer.Stop();
+                    var endTime = DateTime.Now;
+                    lblEndTime.Content = endTime.ToLongTimeString();
+
+                    // Disable and Enable Buttons
+                    startButton.IsEnabled = true;
+                    stopButton.IsEnabled = false;
+                    pauseButton.IsEnabled = false;
+                    pauseButton.Content = "Pause";
+
+                    // Enable Threshold Input
+                    minThresh.IsEnabled = true;
+                    maxThresh.IsEnabled = true;
+
+                    // Disable Read-Only for Table
+                    dataGrid.IsReadOnly = false;
+
+                    var elapsed = endTime - startTime;
+                    lblElapsedTime.Content = $"{elapsed.Hours:00}:{elapsed.Minutes:00}:{elapsed.Seconds:00}";
+
+                    break;
+            }
+        }
 
         private double ConvertVoltageToPressure(double voltage)
         {
@@ -879,7 +1099,7 @@ namespace NanoPSI
 
         private void InitializeTable()
         {
-            for (int i = 1; i <= 15; i++) // Assuming you have 15 transducers
+            for (int i = transducerDataCollection.Count + 1; i <= 15; i++)
             {
                 var transducer = new TransducerData(i);
                 transducerDataCollection.Add(transducer);
@@ -896,79 +1116,51 @@ namespace NanoPSI
                 if (column != null)
                 {
                     var bindingPath = (column.Binding as Binding).Path.Path;
-                    int rowIndex = e.Row.GetIndex();
-                    var editedTextbox = e.EditingElement as TextBox;
-                    var editedValue = editedTextbox.Text;
+                    // Using the DataGrid's Items indexer might be safer than relying on GetIndex in some scenarios.
+                    var transducerData = e.Row.Item as TransducerData;
 
-                    var transducerData = transducerDataCollection[rowIndex];
-
-                    switch (bindingPath)
+                    if (transducerData != null)
                     {
-                        case "TransducerName":
-                            transducerData.TransducerName = editedValue;
-                            break;
-                        // Handle other cases if necessary, like editing the Offset or IsActive
-                        case "Offset":
-                            if (double.TryParse(editedValue, out double offsetValue))
-                            {
-                                transducerData.Offset = offsetValue;
-                            }
-                            else
-                            {
-                                MessageBox.Show("Invalid offset value.");
-                            }
-                            break;
-                        case "IsActive":
-                            var editedCheckBox = e.EditingElement as CheckBox;
-                            if (editedCheckBox != null)
-                            {
-                                transducerData.IsActive = editedCheckBox.IsChecked ?? false;
-                            }
-                            break;
+                        switch (bindingPath)
+                        {
+                            case "TransducerName":
+                                if (e.EditingElement is TextBox editedTextbox)
+                                {
+                                    transducerData.TransducerName = editedTextbox.Text;
+                                }
+                                break;
+
+                            case "Offset":
+                                if (e.EditingElement is TextBox editedOffsetBox && double.TryParse(editedOffsetBox.Text, out double offsetValue))
+                                {
+                                    transducerData.Offset = offsetValue;
+                                }
+                                else
+                                {
+                                    MessageBox.Show("Invalid offset value.");
+                                }
+                                break;
+
+                            case "IsActive":
+                                if (e.EditingElement is CheckBox editedCheckBox)
+                                {
+                                    transducerData.IsActive = editedCheckBox.IsChecked ?? false;
+                                }
+                                break;
+                        }
                     }
                 }
             }
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            //TODO: Code troubleshoot button for MCU connection
-        }
-
-        private void Button_Click_1(object sender, RoutedEventArgs e)
-        {
-            //TODO: Code troubleshoot button for SQL connection
-        }
-
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
-            MessageBoxResult result = MessageBox.Show("Starting the test will replace the current data, do you wish to continue?", "Override Data", MessageBoxButton.YesNo);
-            if (result == MessageBoxResult.No)
-            {
-                return;
-            }
-
-            // Disable and Enable Buttons
-            startButton.IsEnabled = false;
-            pauseButton.IsEnabled = true;
-            stopButton.IsEnabled = true;
-
-            // Disable Threshold Input
-            minThresh.IsEnabled = false;
-            maxThresh.IsEnabled = false;
-
-            // Enable Read-Only for Table
-            dataGrid.IsReadOnly = true;
-
-            // Start Timer
-            startTime = DateTime.Now;
-            lblStartTime.Content = startTime.ToLongTimeString();
-            timer.Start();
+            ControlTest("Start");
         }
 
         private void Button_Click_3(object sender, RoutedEventArgs e)
         {
-            MessageBoxResult result = MessageBox.Show("This will save all transducer data for the test, do you wish to continue?", "Save Data", MessageBoxButton.YesNo);
+            MessageBoxResult result = MessageBox.Show("This will save all active transducer data for the test, if a transducer is not active it will not be saved, do you wish to continue?", "Save Data", MessageBoxButton.YesNo);
             if (result == MessageBoxResult.Yes)
             {
                 WriteToDatabase();
@@ -977,6 +1169,19 @@ namespace NanoPSI
 
         private void Button_Click_4(object sender, RoutedEventArgs e)
         {
+            if (!firstRun)
+            {
+                MessageBoxResult result = MessageBox.Show("Starting the test will replace the current data, do you wish to continue?", "Override Data", MessageBoxButton.YesNo);
+                if (result == MessageBoxResult.No)
+                {
+                    return;
+                }
+            }
+            else
+            {
+                firstRun = false;
+            }
+
             FindWindow findWindow = new FindWindow();
             var dialogResult = findWindow.ShowDialog(); // ShowDialog makes findWindow modal and waits for it to close
 
@@ -987,31 +1192,16 @@ namespace NanoPSI
 
                 // Read and input data from database for specified date
                 ReadFromDatabase(selectedDate);
+
+                dataGrid.ItemsSource = transducerDataCollection;
+                InitializeTable();
+                ImportChartData();
             }
         }
 
         private void Button_Click_StopTest(object sender, RoutedEventArgs e)
         {
-            // Stop Test
-            timer.Stop();
-            var endTime = DateTime.Now;
-            lblEndTime.Content = endTime.ToLongTimeString();
-
-            // Disable and Enable Buttons
-            startButton.IsEnabled = true;
-            stopButton.IsEnabled = false;
-            pauseButton.IsEnabled = false;
-            pauseButton.Content = "Pause";
-
-            // Enable Threshold Input
-            minThresh.IsEnabled = true;
-            maxThresh.IsEnabled = true;
-
-            // Disable Read-Only for Table
-            dataGrid.IsReadOnly = false;
-
-            var elapsed = endTime - startTime;
-            lblElapsedTime.Content = $"{elapsed.Hours:00}:{elapsed.Minutes:00}:{elapsed.Seconds:00}";
+            ControlTest("Stop");
         }
         private void MinThresh_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -1039,24 +1229,7 @@ namespace NanoPSI
 
         private void Button_Click_PauseTest(object sender, RoutedEventArgs e)
         {
-            if (timer.IsEnabled)
-            {
-                // Timer is running, so pause the test
-                timer.Stop();
-                pauseButton.Content = "Resume"; // Change button text to indicate it will now resume the test
-
-                // Optionally, update other UI elements or state as needed
-                startButton.IsEnabled = false; // Keep start disabled while paused
-                stopButton.IsEnabled = true; // Allow stopping the test even when paused
-            }
-            else
-            {
-                timer.Start();
-                pauseButton.Content = "Pause";
-
-                startButton.IsEnabled = false;
-                stopButton.IsEnabled = true;
-            }
+            ControlTest("Pause");
         }
 
         private void dataGrid_CellEditEnding_1(object sender, DataGridCellEditEndingEventArgs e)
