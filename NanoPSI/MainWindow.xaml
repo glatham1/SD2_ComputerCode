@@ -72,7 +72,7 @@
                        VerticalAlignment="Center" 
                        FontWeight="Bold" 
                        FontSize="12" />
-                    <Image Source="/Nanotech_Logo.jpg" Height="25" />
+                    <Image Source="/Nanotech_Logo.jpg" Height="40" Width="200" />
                 </StackPanel>
             </StackPanel>
 
@@ -122,7 +122,7 @@
             <GroupBox Header="Testing Control">
                 <StackPanel HorizontalAlignment="Center">
                     <StackPanel Orientation="Horizontal">
-                        <Button Name="startButton" Content="Start Pressure Test" Click="Button_Click_2" Height="45" />
+                        <Button Name="startButton" Content="Start Pressure Test" Click="Button_Click_2" Height="45" IsEnabled="False" />
                         <Button Name="pauseButton" Content="Pause" Click="Button_Click_PauseTest" Margin="5,0,0,0" Height="45" IsEnabled="False" />
                         <Button Name="stopButton" Content="Stop Pressure Test" Click="Button_Click_StopTest" Margin="5,0,0,0" Height="45" IsEnabled="False" />
                     </StackPanel>
@@ -146,7 +146,7 @@
                 <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                     <!-- StackPanel for Save Data Button and its label -->
                     <StackPanel VerticalAlignment="Center" Margin="5" Width="250" Height="Auto">
-                        <Button Content="Save Data" Width="200" HorizontalAlignment="Center" Click="Button_Click_3" FontWeight="Bold" />
+                        <Button Content="Save Data" Width="200" HorizontalAlignment="Center" Click="Button_Click_3" Name="SaveButton" FontWeight="Bold" IsEnabled="False" />
                         <Label HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                             <TextBlock Text="Saves all pressure transducer data." TextWrapping="Wrap" TextAlignment="Center"/>
                         </Label>
@@ -154,7 +154,7 @@
 
                     <!-- StackPanel for Find Data Button and its label -->
                     <StackPanel VerticalAlignment="Center" Margin="5" Width="250" Height="Auto">
-                        <Button Content="Find Data" Width="200" HorizontalAlignment="Center" Click="Button_Click_4" />
+                        <Button Content="Find Data" Width="200" HorizontalAlignment="Center" Click="Button_Click_4" Name="FindButton" IsEnabled="False"/>
                         <Label HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                             <TextBlock Text="Find and import pressure transducer data." TextWrapping="Wrap" TextAlignment="Center"/>
                         </Label>
@@ -205,13 +205,13 @@
                         <DataGridTemplateColumn Header="Pressure (PSI)" Width="*">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding LastPressureValue}" Style="{StaticResource PressureValueStyle}"/>
+                                    <TextBlock Text="{Binding Path=LastPressureValue, StringFormat=N2}" Style="{StaticResource PressureValueStyle}"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
 
                         <!-- Time (s) Column -->
-                        <DataGridTextColumn Header="Time (s)" Binding="{Binding LastTimeValue}" Width="*"/>
+                        <DataGridTextColumn Header="Time (s)" Binding="{Binding Path=LastTimeValue, StringFormat=N2}" Width="*"/>
 
                         <!-- Connection Status Column -->
                         <DataGridTextColumn Header="Connection Status" Binding="{Binding ConnectionStatus}" Width="*"/>

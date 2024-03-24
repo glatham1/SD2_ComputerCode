@@ -22,6 +22,8 @@ namespace NanoPSI
     {
         // Change this for local server
         private const string connStr = "server=127.0.0.1;port=3306;database=sys;user=root;password=NinerGraduate-2024;";
+        //private const string connStr = "server=127.0.0.1;port=3306;database=sys;user=root;password=NanoPSI2024;";
+
         public string SelectedDate { get; private set; } // Property to store the selected date
 
         public FindWindow()
@@ -49,9 +51,7 @@ namespace NanoPSI
 
                             while (reader.Read())
                             {
-                                // Assuming the "Saved Date/Time" is stored in a recognizable format,
-                                // convert it to string with both date and time
-                                string dateTimeString = Convert.ToDateTime(reader["Saved Date/Time"]).ToString("yyyy-MM-dd HH:mm:ss");
+                                string dateTimeString = Convert.ToDateTime(reader["Saved Date/Time"]).ToString("MMMM d, yyyy: h:mm:sstt");
 
                                 // Add the dateTimeString to the HashSet to ensure uniqueness
                                 dateTimeSet.Add(dateTimeString);
@@ -81,17 +81,20 @@ namespace NanoPSI
 
         private void loadDataButton_Click_1(object sender, RoutedEventArgs e)
         {
-            // Assuming datasetComboBox holds the date as a string directly
             if (datasetComboBox.SelectedItem != null)
             {
-                SelectedDate = datasetComboBox.SelectedItem.ToString();
+                // Parse the selected date-time string back to DateTime
+                DateTime selectedDateTime = DateTime.ParseExact(datasetComboBox.SelectedItem.ToString(), "MMMM d, yyyy: h:mm:sstt", System.Globalization.CultureInfo.InvariantCulture);
+
+                // Format the DateTime to the desired format
+                SelectedDate = selectedDateTime.ToString("yyyy-MM-dd HH:mm:ss");
+                string formattedDate = selectedDateTime.ToString("MMMM d, yyyy: h:mm:sstt");
 
                 // Ask for confirmation and then close this window if confirmed
-                MessageBoxResult result = MessageBox.Show($"Load data for {SelectedDate}?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                MessageBoxResult result = MessageBox.Show($"Load data for {formattedDate}?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question);
                 if (result == MessageBoxResult.Yes)
                 {
                     this.DialogResult = true; // Indicates success
-                    //this.Close();
                 }
             }
         }

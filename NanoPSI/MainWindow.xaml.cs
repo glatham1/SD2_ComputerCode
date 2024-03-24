@@ -183,7 +183,7 @@ namespace NanoPSI
         }
 
         /**************** SQL Connection Functions ************************************************/
-        
+
         // Test Connection to mySQL Server
         private void TestSqlConnection()
         {
@@ -194,6 +194,7 @@ namespace NanoPSI
                     conn.Open(); // Open the connection just to test
                     sqlConnLabel.Content = "Connected";
                     sqlConnLabel.Foreground = new SolidColorBrush(Colors.Green);
+                    FindButton.IsEnabled = true;
                 }
             }
             catch (Exception ex)
@@ -262,12 +263,8 @@ namespace NanoPSI
                 {
                     conn.Open(); // Open the connection
 
-                    // Format the input date to match SQL format, assuming selectedDate is already in correct format
-                    // If selectedDate is not in 'yyyy-MM-dd' format, you need to convert it first
                     string formattedDate = selectedDate;
 
-                    // Define the SQL query to select all records from nanopsi table for the given date
-                    // Assuming the 'Saved Date/Time' column is stored in a DATE or DATETIME format that can be compared with a string
                     string sql = $"SELECT * FROM nanopsi WHERE `Saved Date/Time` = '{formattedDate}';";
 
                     using (MySqlCommand cmd = new MySqlCommand(sql, conn))
@@ -328,11 +325,13 @@ namespace NanoPSI
                     mcuConnect.SelectedValuePath = "DeviceAddress";
                     mcuConnect.Items.Add(device);
 
+                    /*
                     if (device.DeviceName == "NanoPSI")
                     {
                         ConnectToDevice(device);
                         break;
                     }
+                    */
                 }
             }
             catch (Exception ex)
@@ -360,6 +359,7 @@ namespace NanoPSI
                 client.BeginConnect(device.DeviceAddress, BluetoothService.SerialPort, new AsyncCallback(ConnectCallback), device);
                 mcuStatus.Content = "Connected";
                 mcuStatus.Foreground = new SolidColorBrush(Colors.Green);
+                startButton.IsEnabled = true;
             }
             catch (Exception ex)
             {
@@ -375,7 +375,7 @@ namespace NanoPSI
             try
             {
                 client.EndConnect(result);
-                
+
 
                 // After successful connection, you can start reading/writing data
                 // Implement your data read/write logic here
@@ -391,47 +391,25 @@ namespace NanoPSI
         {
             try
             {
-                //if (client.Connected)
-                //{
-                //    NetworkStream stream = client.GetStream();
-                //    if (stream.CanRead && stream.DataAvailable)
-                //    {
-                //        byte[] buffer = new byte[1024];
-                //        int bytesRead = stream.Read(buffer, 0, buffer.Length);
-                //        string inputStr = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-                        string inputStr = RandomTestString();
+                if (client.Connected)
+                {
+                    NetworkStream stream = client.GetStream();
+                    if (stream.CanRead && stream.DataAvailable)
+                    {
+                        byte[] buffer = new byte[1024];
+                        int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                        string inputStr = Encoding.ASCII.GetString(buffer, 0, bytesRead);
+                        //string inputStr = RandomTestString();
 
                         // Split the input string by newline characters to get individual sets of data
-                        // string[] dataSet = inputStr.Split(new string[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                        string[] dataSet = inputStr.Split(new string[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
 
                         // Initialize a variable to hold the last complete set of data
-                        // string lastCompleteSet = null;
+                        string lastCompleteSet = dataSet[dataSet.Length - 2];
 
-                        // Iterate through the data sets from the end to find the last complete set
-                        //for (int i = dataSet.Length - 1; i >= 0; i--)
-                        //{
-                        //    // Check if the set contains data for transducers 1 through 15
-                        //    bool isComplete = true;
-                        //    for (int j = 1; j <= 15; j++)
-                        //    {
-                        //        if (!dataSet[i].Contains(j + ":["))
-                        //        {
-                        //            isComplete = false;
-                        //            break;
-                        //        }
-                        //    }
-
-                        //    // If a complete set is found, assign it to lastCompleteSet and break the loop
-                        //    if (isComplete)
-                        //    {
-                        //        lastCompleteSet = dataSet[i];
-                        //        break;
-                        //    }
-                        //}
-
-                        //if (lastCompleteSet != null)
-                        //{
-                            string[] transducerValues = inputStr.Split(',');
+                        if (lastCompleteSet != null)
+                        {
+                            string[] transducerValues = lastCompleteSet.Split(',');
                             for (int i = 0; i < transducerValues.Length; i++)
                             {
                                 string[] parts = transducerValues[i].Split(':');
@@ -451,7 +429,7 @@ namespace NanoPSI
                                 }
 
                                 // Update the TransducerData object
-                                transducerData.IsActive = pressure != -1;
+                                transducerData.IsActive = pressure != -1.0;
                                 transducerData.ConnectionStatus = transducerData.IsActive ? "Connected" : "Not Connected";
                                 if (transducerData.IsActive)
                                 {
@@ -459,25 +437,26 @@ namespace NanoPSI
                                     transducerData.AddPressureValue(pressure, time);
                                 }
                             }
-                        //}
-                        //else
-                        //{
-                        //    System.Windows.MessageBox.Show("No complete set of data found in the input string.");
-                        //}
-                //    }
-                //    else
-                //    {
-                //        System.Windows.MessageBox.Show("Cannot read from device");
-                //    }
-                //}
-                //else
-                //{
-                //    System.Windows.MessageBox.Show("Not connected to device");
-                //}
+                        }
+                        else
+                        {
+                            System.Windows.MessageBox.Show("No complete set of data found in the input string.");
+                        }
+                    }
+                    else
+                    {
+                        System.Windows.MessageBox.Show("Cannot read from device");
+                    }
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show("Not connected to device");
+                }
             }
             catch (Exception ex)
             {
                 System.Windows.MessageBox.Show($"Error reading from device: {ex.Message}");
+                ControlTest("Stop");
             }
         }
 
@@ -552,7 +531,7 @@ namespace NanoPSI
             {
                 ReadMCU(elapsed.TotalSeconds);
                 UpdateChartData();
-            } 
+            }
             catch (Exception ex)
             {
                 System.Windows.MessageBox.Show(ex.Message);
@@ -755,7 +734,7 @@ namespace NanoPSI
                     LineStyle = { Color = colors[j] }
                 };
                 _chart.ViewXY.PointLineSeries.Add(series);
-                
+
                 j++;
             }
 
@@ -967,7 +946,7 @@ namespace NanoPSI
                 _chart.ViewXY.LineSeriesCursors[0].SnapToPoints = false;
             }
         }
-        
+
         public void Dispose()
         {
             // Don't forget to clear chart grid child list.
@@ -1061,6 +1040,7 @@ namespace NanoPSI
                     stopButton.IsEnabled = false;
                     pauseButton.IsEnabled = false;
                     pauseButton.Content = "Pause";
+                    SaveButton.IsEnabled = true;
 
                     // Enable Threshold Input
                     minThresh.IsEnabled = true;
